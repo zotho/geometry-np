@@ -139,19 +139,20 @@ class Point(Shape):
             self.__dict__[index] = value
 
 class Poly(Shape):
-    '''Poly()
+    '''Poly([point0, ...], [[n_start, n_end], ...])
+    Poly()
 
     '''
     name = "poly"
 
-    def __init__():
+    def __init__(self, *args, **kwargs):
         # Poly([point0, ...], [[n_start, n_end], ...])
         if not kwargs and len(args) == 2 and \
                 isinstance(args[0], (list, tuple)) and isinstance(args[1], (list, tuple)):
             points, pairs = args
             # check points
             for point in points:
-                if not isinstance(point, Point3):
+                if not isinstance(point, Point):
                     return self._error(args, kwargs, name=self.name, err_name="Bad argument expected point")
             for l_point in range(len(points)):
                 for r_point in range(l_point + 1, len(points)):
@@ -161,10 +162,12 @@ class Poly(Shape):
             for pair in pairs:
                 if not isinstance(pair, (list, tuple)) or not len(pair) == 2 or \
                         not isinstance(pair[0], int) or pair[0] >= len(points) or pair[0] < 0 or \
-                        not isinstance(pair[1], int) or pair[1] >= len(points) or pair[1] < 0:
+                        not isinstance(pair[1], int) or pair[1] >= len(points) or pair[1] < 0 or \
+                        pair[0] == pair[1]:
                     return self._error(args, kwargs, name=self.name, err_name="Bad argument expected pairs")
-            for l_pair in range(len(pair)):
-                for r_pair in range(l_pair + 1, len(pair)):
+            for l_pair in range(len(pairs)):
+                for r_pair in range(l_pair + 1, len(pairs)):
+                    print(f'l_pair{l_pair}r_pair{r_pair}')
                     if pairs[l_pair] == pairs[r_pair] or pairs[l_pair][::-1] == pairs[r_pair]:
                         return self._error(args, kwargs, name=self.name, err_name="Bad argument pairs repeated or has reverse pair")
 
@@ -192,6 +195,7 @@ class Poly(Shape):
         '''
         pass
 
+    '''
     def __str__(self):
         pass
 
@@ -206,6 +210,7 @@ class Poly(Shape):
 
     def __setattr__(self, index, value):
         pass
+    '''
 
 
 if __name__ == "__main__":
@@ -219,3 +224,8 @@ if __name__ == "__main__":
     p.x = 5.8
     print(p)
     print(f'p.x + p.y + p.z = {p.x + p.y + p.z}')
+    p1 = Point([1,2,3])
+    p2 = Point([4,5,6])
+    pol = Poly([p,p1,p2],[[0,2],[1,2]])
+    print(pol.point_array)
+    print(pol.pair_array)
