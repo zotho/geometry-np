@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8
+
 '''
     TODO Information
     For more information see:
@@ -145,22 +145,50 @@ class Poly(Shape):
     name = "poly"
 
     def __init__():
-        # self.point_array
         # Poly([point0, ...], [[n_start, n_end], ...])
-        if not args and not kwargs:
-            self.point_array = np.array([])
+        if not kwargs and len(args) == 2 and \
+                isinstance(args[0], (list, tuple)) and isinstance(args[1], (list, tuple)):
+            points, pairs = args
+            # check points
+            for point in points:
+                if not isinstance(point, Point3):
+                    return self._error(args, kwargs, name=self.name, err_name="Bad argument expected point")
+            for l_point in range(len(points)):
+                for r_point in range(l_point + 1, len(points)):
+                    if points[l_point] is points[r_point]:
+                        return self._error(args, kwargs, name=self.name, err_name="Bad argument points repeated")
+            # check pairs
+            for pair in pairs:
+                if not isinstance(pair, (list, tuple)) or not len(pair) == 2 or \
+                        not isinstance(pair[0], int) or pair[0] >= len(points) or pair[0] < 0 or \
+                        not isinstance(pair[1], int) or pair[1] >= len(points) or pair[1] < 0:
+                    return self._error(args, kwargs, name=self.name, err_name="Bad argument expected pairs")
+            for l_pair in range(len(pair)):
+                for r_pair in range(l_pair + 1, len(pair)):
+                    if pairs[l_pair] == pairs[r_pair] or pairs[l_pair][::-1] == pairs[r_pair]:
+                        return self._error(args, kwargs, name=self.name, err_name="Bad argument pairs repeated or has reverse pair")
+
+            self.point_array = np.array([point.coord_array for point in points])
+            self.pair_array = np.array(pairs)
         # Poly()
+        elif not args and not kwargs:
+            self.point_array = np.array([])
+            self.pair_array = np.array([])
+        else:
+            self._error(args, kwargs, name=self.name, err_name="Bad arguments")
 
 
     def add_point(self, *args, **kwargs):
-        '''add_point(point)
+        '''add_point(point [,from=start_point])
 
         '''
         pass
 
     def add_line(self, *args, **kwargs):
         '''add_line(n_start, n_end)
-        
+        add_line(point_start, point_end)
+        add_line(array_start, array_end)
+
         '''
         pass
 
