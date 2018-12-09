@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-'''
-    TODO Information
-    For more information see:
-    www.github.com/zotho
+'''TODO Information
+For more information see:
+www.github.com/zotho
+
 '''
 
 __author__ = "Sviatoslav Alexeev"
@@ -14,8 +14,7 @@ __status__ = "Developed"
 import numpy as np
 
 
-'''
-TODO
+'''TODO
 
 Shape               _coord_dict
     Point           coord_array                     
@@ -27,7 +26,7 @@ Shape               _coord_dict
 
 
 class Shape():
-    '''Shape([n_dimensions:int>0])
+    '''Shape([ n_dimensions:int>0 ])
 
     '''
     name = "shape"
@@ -35,7 +34,7 @@ class Shape():
     _coord_dict = {'x': 0, 'y': 1, 'z': 2}
 
     def __init__(self, *args, **kwargs):
-        # Shape(n)
+        # Shape(n_dimensions)
         if not kwargs and len(args) == 1 and isinstance(args[0], int):
             new_len = args[0]
             if new_len > len(self._coord_dict):
@@ -80,18 +79,19 @@ class Shape():
 
 
 class Point(Shape):
-    '''Point([x, [y, z]])
+    '''Point([ x, ... ])
 
     '''
     name = "point"
 
     def __init__(self, *args, **kwargs):
-        # Point(x, [y, z])
+        # Point(x, ...)
         if not kwargs and len(args) == 1 and isinstance(args[0], (list, tuple)):
             if len(args[0]) <= len(self._coord_dict):
                 coords = list(args[0])
                 coords += [0.] * (len(self._coord_dict) - len(coords))
                 self.coord_array = np.array(coords)
+        # Point()
         elif not args and not kwargs:
             coords = [0.] * len(self._coord_dict)
             self.coord_array = np.array(coords)
@@ -121,7 +121,6 @@ class Point(Shape):
 
     # x = p.x
     def __getattr__(self, index):
-        # print(f'__getattr__({index})')
         if index in self._coord_dict:
             return self.coord_array[self._coord_dict.get(index)]
         else:
@@ -129,7 +128,6 @@ class Point(Shape):
 
     # p.x = x
     def __setattr__(self, index, value):
-        # print(f'__setattr__({index})')
         if index in self._coord_dict:
             if isinstance(value, (int, float)):
                 self.coord_array[self._coord_dict.get(index)] = value
@@ -139,7 +137,7 @@ class Point(Shape):
             self.__dict__[index] = value
 
 class Poly(Shape):
-    '''Poly([point0, ...], [[n_start, n_end], ...])
+    '''Poly([ [point0, ...], [[n_start, n_end], ...] ])
     Poly()
 
     '''
@@ -182,7 +180,7 @@ class Poly(Shape):
 
 
     def add_point(self, *args, **kwargs):
-        '''add_point(point [,from=start_point])
+        '''add_point(point [ , from=start_point ])
 
         '''
         pass
