@@ -21,3 +21,9 @@
 
 #	Pong
 # https://github.com/kivy/kivy/tree/master/examples/tutorials/pong
+
+#	Animation stencil
+# https://www.youtube.com/watch?v=Mr-OZp1lN1I
+
+#	Interactive mode
+# https://www.youtube.com/watch?v=S2sFqFGDu1k
