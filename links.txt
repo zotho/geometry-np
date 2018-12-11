@@ -1,0 +1,23 @@
+# LINKS
+
+# 	Kivy Canvas
+# http://robertour.com/2013/07/19/10-things-you-should-know-about-the-kivy-canvas/
+
+# 	kivy-projects
+# https://github.com/amatelin/kivy-projects
+
+# 	NN github
+# https://github.com/amatelin/neural-networks/tree/master/Visual%20classification/digits
+
+# 	Kivy with Python tutorial Part 8 - Simple Drawing Application
+# https://www.youtube.com/watch?v=U9TnXzQgIJU
+
+#	Good channel
+# https://www.youtube.com/channel/UCfzlCWGWYyIQ0aLC5w48gBQ
+
+#	Github tshirtman (kivy)
+# https://gist.github.com/tshirtman/4f4337eb6a453dbd5597
+# https://beesandbombs.tumblr.com/post/99577746089/flower
+
+#	Pong
+# https://github.com/kivy/kivy/tree/master/examples/tutorials/pong
