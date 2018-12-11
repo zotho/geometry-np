@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo pacman -Sy --noconfirm yaourt htop &&
-yaourt -S --noconfirm sublime-text-dev python-numpy ipython &&
+yaourt -S --noconfirm sublime-text-dev python-numpy python-kivy ipython &&
 sudo yaourt -Scc --noconfirm &&
 git init &&
 git config --global user.name "Zotho" &&
