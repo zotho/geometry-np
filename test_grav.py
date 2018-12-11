@@ -38,11 +38,18 @@ class Planet():
 
     def update_acc(self, dt, t, s):
         self.acc = np.array([0.]*self.num_dimension)
+        coll = False
         for obj in s.objects:
             if self is not obj:
                 dist = np.linalg.norm(self.pos - obj.pos)
                 # print(f"dist = {dist}")
-                self.acc += (obj.pos - self.pos) * obj.mass * s.grav_const / dist**2
+                if dist != 0.:
+                    self.acc += (obj.pos - self.pos) * obj.mass * s.grav_const / dist**2
+                else:
+                    coll = True
+                    break   
+        if coll:
+            s.collide(self, obj)
 
     def update_vel(self, dt, t):
         self.vel = self.vel + (self.acc * dt)
@@ -59,7 +66,7 @@ class Planet():
 class Space(Widget):
     color = ListProperty([1, 1, 0, .1])
 
-    num_dimension = 2
+    num_dimension = 3
     def to_num_dimension(self, arr):
         return np.array(list(arr)+[0.]*(self.num_dimension-len(arr))) if len(arr) < self.num_dimension else arr
 
@@ -154,7 +161,8 @@ class Space(Widget):
                 Line(points=coords[-(obj.tail_len//3*2):],
                      width=4,
                      joint='round')
-
+                '''
+                #   Debug
                 # Vel
                 Color(0, 0, 1, 1)
                 norm_vel = sign_log(obj.vel)
@@ -167,7 +175,7 @@ class Space(Widget):
                 # print(f"norm_acc={norm_acc}")
                 Line(points=[coords[-2], coords[-1],
                              coords[-2] + norm_acc[0], coords[-1] + norm_acc[1]])
-        
+                '''
         for obj in self.objects:
             with self.canvas:
                 Color(1, 1, 0, 0.9)
@@ -175,9 +183,9 @@ class Space(Widget):
                 Ellipse(pos=[obj.pos[i]-self.round_size(obj.mass) for i in (0, 1)], size=[self.round_size(obj.mass)*2., self.round_size(obj.mass)*2.])
 
     def collide(self, p1, p2):
-        pos = (p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass)
-        vel = (p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass)
-        acc = np.array([0., 0.])
+        pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
+        vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
+        acc = list(np.array([0.] * self.num_dimension))
         mass = p1.mass + p2.mass
         p3 = Planet(pos=pos, vel=vel, acc=acc, mass=mass, num_dimension=self.num_dimension)
         
@@ -195,15 +203,15 @@ class Space(Widget):
     def on_touch_down(self, touch):
         self.touch_start = touch.pos
         self.touch_end = touch.pos
-        self.touch_planet = Planet(pos=(touch.pos[0], touch.pos[1]), mass=1, num_dimension=self.num_dimension)
+        self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)), mass=1, num_dimension=self.num_dimension)
         self.objects.append(self.touch_planet)
 
     def on_touch_move(self, touch):
         self.touch_end = touch.pos
-        self.touch_planet.pos = np.array(self.touch_end)
+        self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
 
     def on_touch_up(self, touch):
-        self.touch_planet.vel = np.array(self.touch_end) - np.array(self.touch_start)
+        self.touch_planet.vel = np.array(self.to_num_dimension(self.touch_end)) - np.array(self.to_num_dimension(self.touch_start))
         self.touch_planet = None
 
 
