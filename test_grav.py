@@ -64,8 +64,8 @@ class Space(Widget):
                for i in [0,1]]
     '''
     objects = [Planet(pos=(400, 300),
-                      vel=(0, 0),
-                      mass=1.),
+                      vel=(0, -1),
+                      mass=10.),
                Planet(pos=(200, 300),
                       vel=(0, 10),
                       mass=1.)]
@@ -91,14 +91,19 @@ class Space(Widget):
         for obj in self.objects:
             with self.canvas:
                 # print(f"obj.pos_list={list(obj.pos_list)}")
-                Color(0, 1, 0, 1)
+                Color(0, 1, 0, .6)
                 #for i in range(len(obj.pos_list)):
                 coords = [obj.pos_list[i//2][i%2] for i in range(len(obj.pos_list)*2)]
                 # print(f"coords={coords}")
 
-                Line(points=coords)
+                Line(points=coords,
+                     width=2,
+                     joint='round')
+        for obj in self.objects:
+            with self.canvas:
                 Color(1, 0, 0, 1)
-                Rectangle(pos=tuple(obj.pos), size=(5, 5))
+                size = (10, 10)
+                Rectangle(pos=[obj.pos[i]-size[i]/2. for i in (0, 1)], size=size)
 
 class GravApp(App):
     time = NumericProperty(0)
