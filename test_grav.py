@@ -12,18 +12,12 @@ from kivy.graphics.context_instructions import Color
 import numpy as np
 
 class Planet():
-    mass = 1.
-    # Position
-    pos = np.array([0, 0])
-    # Velocity
-    vel = np.array([0., 0.])
-    # Acceleration
-    acc = np.array([0., 0.])
-    # List [time, pos]
-    pos_list = []
-    time_list = []
 
-    def __init__(self, pos=pos, vel=vel, acc=acc, mass=mass):
+    def __init__(self, pos=[0., 0.], vel=[0., 0.], acc=[0., 0.], mass=1.):
+        # List [time, pos]
+        self.pos_list = []
+        self.time_list = []
+
         self.pos = np.array(pos)
         self.vel = np.array(vel)
         self.acc = np.array(acc)
@@ -71,7 +65,7 @@ class Space(Widget):
     '''
     objects = [Planet(pos=(400, 300),
                       vel=(0, 0),
-                      mass=10.),
+                      mass=1.),
                Planet(pos=(200, 300),
                       vel=(0, 10),
                       mass=1.)]
@@ -96,10 +90,13 @@ class Space(Widget):
         self.canvas.clear()
         for obj in self.objects:
             with self.canvas:
-                print(f"obj.pos_list={list(obj.pos_list)}")
+                # print(f"obj.pos_list={list(obj.pos_list)}")
                 Color(0, 1, 0, 1)
-                for i in range(len(obj.pos_list) - 1):
-                    Line(points=[list(l) for l in obj.pos_list])
+                #for i in range(len(obj.pos_list)):
+                coords = [obj.pos_list[i//2][i%2] for i in range(len(obj.pos_list)*2)]
+                # print(f"coords={coords}")
+
+                Line(points=coords)
                 Color(1, 0, 0, 1)
                 Rectangle(pos=tuple(obj.pos), size=(5, 5))
 
