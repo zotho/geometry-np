@@ -11,13 +11,6 @@ from kivy.graphics.context_instructions import Color
 
 import numpy as np
 
-def sign_log(x, m = 10):
-    norm = np.linalg.norm(x)
-    if norm < 1.:
-        norm = 1.
-    mult = m * np.log(norm) / norm
-    return x * mult
-
 
 class Planet():
     def __init__(self, pos=None, vel=None, acc=None, mass=1., num_dimension=2):
@@ -78,10 +71,17 @@ class Space(Widget):
     grav_const = 1000.
     inform_speed = 100.
 
+    def sign_log(self, x, m = 10):
+        norm = np.linalg.norm(x)
+        if norm < 1.:
+            norm = 1.
+        mult = m * np.log(norm) / norm
+        return x * mult
+
     def rect_size(self, mass, m=10):  
         return np.sqrt(mass) * m, np.sqrt(mass) * m
 
-    def round_size(self, mass, m=1):
+    def round_size(self, mass, m=3):
         return np.sqrt(mass) * m
 
     def collide_check(self, p1, p2):
@@ -135,17 +135,15 @@ class Space(Widget):
 
         # Drawing
         self.canvas.clear()
-        if self.touch_planet:
-            self.touch_planet.vel = np.array(self.to_num_dimension([0.]))
-            self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
-            with self.canvas:
+        with self.canvas:
+            if self.touch_planet:
+                self.touch_planet.vel = np.array(self.to_num_dimension([0.]))
+                self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
                 Color(1, 1, 1, 1)
                 Line(points=[self.touch_start[0], self.touch_start[1], 
                              self.touch_end[0], self.touch_end[1]],
                      width=2)
-        for obj in self.objects:
-            with self.canvas:
-                
+            for obj in self.objects:
                 # Tail
                 coords = [obj.pos_list[i // self.num_dimension][i % self.num_dimension] for i in range(len(obj.pos_list) * self.num_dimension) if i % self.num_dimension < 2]
                 Color(1, 0, 0, .3)
@@ -165,19 +163,18 @@ class Space(Widget):
                 #   Debug
                 # Vel
                 Color(0, 0, 1, 1)
-                norm_vel = sign_log(obj.vel)
+                norm_vel = self.sign_log(obj.vel)
                 Line(points=[coords[-2], coords[-1],
                              coords[-2] + norm_vel[0], coords[-1] + norm_vel[1]])
                 # Acc
                 Color(0, 1, 0, 1)
-                norm_acc = sign_log(obj.acc)
+                norm_acc = self.sign_log(obj.acc)
                 # print(f"obj.acc={obj.acc}")
                 # print(f"norm_acc={norm_acc}")
                 Line(points=[coords[-2], coords[-1],
                              coords[-2] + norm_acc[0], coords[-1] + norm_acc[1]])
                 '''
-        for obj in self.objects:
-            with self.canvas:
+            for obj in self.objects:
                 Color(1, 1, 0, 0.9)
                 # print(f"obj.mass = {obj.mass}")
                 Ellipse(pos=[obj.pos[i]-self.round_size(obj.mass) for i in (0, 1)], size=[self.round_size(obj.mass)*2., self.round_size(obj.mass)*2.])
@@ -222,17 +219,35 @@ class GravApp(App):
         Clock.schedule_interval(self.update, 0)
         self.root = Space()
         self.frame = 0
-        self.rel_time = self.time
+        self.fps_list = []
         return self.root
 
     def update(self, dt):
+        self.dt = dt
         self.time += dt
         self.frame += 1
         self.root.update(dt, self.time)
-        #print(f"fps={self.frame/(self.time-self.rel_time)}")
-        if self.frame > 100:
-            self.frame = 0
-            self.rel_time = float(self.time)
+        self.draw_fps(self.root)
+
+    def draw_fps(self, root):
+        fps_max = 40.
+
+        fps = 1. / self.dt
+
+        x = 10
+        y = 10
+        height = 100
+        colors = [(np.sin(fps / fps_max * np.pi - np.pi * i / 2.) + \
+                   np.abs(np.sin(fps / fps_max * np.pi - np.pi * i / 2.))) / 2.
+                  for i in [1, 2 ,0]]
+
+        self.fps_list.append([fps / fps_max * height, colors])
+        self.fps_list = self.fps_list[-100:]
+
+        with root.canvas:
+            for i in range(len(self.fps_list)):
+                Color(*self.fps_list[i][1], 1)
+                Line(points=[x + i * 4, y, x + i * 4, y + self.fps_list[i][0]])
 
 
 if __name__ == "__main__":
