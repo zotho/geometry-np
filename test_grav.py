@@ -11,23 +11,27 @@ from kivy.graphics.context_instructions import Color
 
 import numpy as np
 
+from math import sin, cos 
+
 
 class Planet():
     def __init__(self, pos=None, vel=None, acc=None, mass=1., num_dimension=2):
         self.num_dimension=num_dimension
-        # List [time, pos]
-        self.pos_list = []
-        self.time_list = []
 
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
         self.vel = np.array(vel) if vel else np.array([0.]*self.num_dimension)
         self.acc = np.array(acc) if acc else np.array([0.]*self.num_dimension)
         self.mass = np.array(mass)
-        self.pos_list.append(self.pos.copy())
-        self.time_list.append(0.)
         
+        # Tail
+        #   List [time, pos]
+        self.pos_list = []
+        self.time_list = []
         self.tail_len = 300
         self.max_tail_len = 1000
+
+        self.pos_list.append(self.pos.copy())
+        self.time_list.append(0.)
 
     def update_acc(self, dt, t, s):
         self.acc = np.array([0.]*self.num_dimension)
@@ -71,17 +75,19 @@ class Space(Widget):
     grav_const = 1000.
     inform_speed = 100.
 
-    def sign_log(self, x, m = 10):
+    def sign_log(self, x, m = 10.):
+        '''Normalise vector(np array) by log of it length
+
+        '''
         norm = np.linalg.norm(x)
         if norm < 1.:
             norm = 1.
-        mult = m * np.log(norm) / norm
-        return x * mult
+        return m * np.log(norm) / norm * x
 
-    def rect_size(self, mass, m=10):  
-        return np.sqrt(mass) * m, np.sqrt(mass) * m
+    def rect_size(self, mass, m=10.):  
+        return (np.sqrt(mass) * m,) * 2
 
-    def round_size(self, mass, m=3):
+    def round_size(self, mass, m=3.):
         return np.sqrt(mass) * m
 
     def collide_check(self, p1, p2):
@@ -145,7 +151,9 @@ class Space(Widget):
                      width=2)
             for obj in self.objects:
                 # Tail
-                coords = [obj.pos_list[i // self.num_dimension][i % self.num_dimension] for i in range(len(obj.pos_list) * self.num_dimension) if i % self.num_dimension < 2]
+                coords = [obj.pos_list[i // self.num_dimension][i % self.num_dimension]
+                          for i in range(len(obj.pos_list) * self.num_dimension)
+                          if i % self.num_dimension < 2]
                 Color(1, 0, 0, .3)
                 Line(points=coords[-(obj.tail_len*2):],
                      width=2,
@@ -236,9 +244,9 @@ class GravApp(App):
 
         x = 10
         y = 10
-        height = 100
-        colors = [(np.sin(fps / fps_max * np.pi - np.pi * i / 2.) + \
-                   np.abs(np.sin(fps / fps_max * np.pi - np.pi * i / 2.))) / 2.
+        height = 30.
+        colors = [(sin(fps / fps_max * np.pi - np.pi * i / 2.) + \
+                   abs(sin(fps / fps_max * np.pi - np.pi * i / 2.))) / 2.
                   for i in [1, 2 ,0]]
 
         self.fps_list.append([fps / fps_max * height, colors])
@@ -246,7 +254,7 @@ class GravApp(App):
 
         with root.canvas:
             for i in range(len(self.fps_list)):
-                Color(*self.fps_list[i][1], 1)
+                Color(*self.fps_list[i][1], .7)
                 Line(points=[x + i * 4, y, x + i * 4, y + self.fps_list[i][0]])
 
 
