@@ -115,9 +115,9 @@ class Space(Widget):
                      joint='round')
                 Color(1, 0, 0.5, .3)
                 Line(points=coords[-(obj.tail_len//3 * 4):],
-                     width=3,
+                     width=obj.round_size() / 2.,
                      joint='round')
-                Color(1, 0, 1, .3)
+                Color(1, 0, .6, .5)
                 Line(points=coords[-(obj.tail_len//3 * 2):],
                      width=obj.round_size(),
                      joint='round')

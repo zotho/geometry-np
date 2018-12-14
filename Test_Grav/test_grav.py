@@ -25,8 +25,8 @@ class GravApp(App):
         self.dt = dt
         self.time += dt
         self.root.update(dt, self.time)
-        self.fps.update(dt)
-        self.fps.draw(self.root)
+        # self.fps.update(dt)
+        self.fps.draw(self.root, dt)
 
 if __name__ == "__main__":
     GravApp().run()

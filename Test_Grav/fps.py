@@ -13,7 +13,7 @@ class Fps():
     '''f = fps(x=50., y=50., height=30., width=200., time=5., fps_max=40.)
 
     '''
-    def __init__(self, x=50., y=50., height=30., width=200., time=5., fps_max=40.):
+    def __init__(self, x=5., y=5., height=30., width=300., time=5., fps_max=40.):
         self.x = x
         self.y = y
         self.height = height
@@ -22,7 +22,7 @@ class Fps():
         self.fps_max = fps_max
 
         # ???
-        self.max_dt = time / width * 5.
+        self.max_dt = time / width * 2.
 
         self.data = deque(maxlen=int(time * fps_max))
         self.data.appendleft((self.fps_max, 0., (1., 0., 0.)))
@@ -58,7 +58,7 @@ class Fps():
                        abs(sin(fps / fps_max * pi - pi * i / 2.))) / 2.
                       for i in (1, 2 ,0)))
 
-    def draw(self, root):
+    def draw(self, root, dt):
         x = self.x
         y = self.y
         height = self.height
@@ -72,16 +72,21 @@ class Fps():
         t_xi = None
         t_yi = None
 
+
         with root.canvas:
+            Color(1,1,1,1)
+            Line(points=[x, y, x, y + 1. / dt / fps_max * height])
+            '''
             for fps, dt, colr in data:
                 t += dt
+                if t > time:
+                    break
                 xi = x + t / time * width
                 yi = y + fps / fps_max * height
-                Color(*colr, 1.)
-                # print(f'Color({[i for i in  colr]})')
+                alpha = 1 - (t / time) ** 2
+                Color(*colr, alpha)
                 if t_xi and t_yi:
                     Line(points=[t_xi, t_yi, xi, yi])
                 t_xi = xi
                 t_yi = yi
-                if t > time:
-                    break
+            '''
