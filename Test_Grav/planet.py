@@ -2,54 +2,81 @@
 
 import numpy as np
 
+from collections import deque
+
 class Planet():
-    def __init__(self, pos=None, vel=None, acc=None, mass=1., num_dimension=2):
+    def __init__(self, pos=None, vel=None, acc=None, mass=1., num_dimension=2, tail_len=300, tail_time=1., tail_back=0):
         self.num_dimension = num_dimension
 
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
         self.vel = np.array(vel) if vel else np.array([0.]*self.num_dimension)
         self.acc = np.array(acc) if acc else np.array([0.]*self.num_dimension)
         self.mass = np.array(mass)
+        self.collided = False
         
         # Tail
-        # TODO tail.py
-        self.pos_list = []
-        self.time_list = []
-        self.tail_len = 300
-        self.max_tail_len = 1000
+        self.tail_back = tail_back
+        self.tail_len = tail_len
+        self.tail_time = tail_time
+        self.tail = deque(maxlen=tail_len)
+        self.tail.appendleft((self.pos.copy(), 0.))
+        self.tail_coords = deque(maxlen=tail_len*2)
+        self.tail_coords.extendleft(self.pos[1::-1])
 
-        self.pos_list.append(self.pos.copy())
-        self.time_list.append(0.)
-        # !!!!
-
-    def update_acc(self, dt, t, s):
+    def update_acc(self, dt, s):
         self.acc.fill(0.)
-        coll = False
         for obj in s.objects:
             if self is not obj:
                 dist = np.linalg.norm(self.pos - obj.pos)
-                # print(f"dist = {dist}")
-                if dist != 0.:
+                if not(dist < self.round_size() + obj.round_size() or \
+                        self.collide_check(obj)):
                     self.acc += (obj.pos - self.pos) * obj.mass * s.grav_const / dist**2
                 else:
-                    coll = True
-                    break   
-        if coll:
-            # !!! Deletes this instanse
-            # TODO self.collided = True and check it in Space class
-            s.collide(self, obj)
+                    self.collided = obj
+                    break
 
-    def update_vel(self, dt, t):
-        self.vel = self.vel + (self.acc * dt)
+    def update_vel(self, dt):
+        self.vel += self.acc * dt
 
-    def update_pos(self, dt, t):
-        self.pos = self.pos + (self.vel * dt)
-        self.pos_list.append(self.pos.copy())
-        self.time_list.append(t)
-        if len(self.pos_list) > self.max_tail_len:
-            self.pos_list = self.pos_list[-self.tail_len:]
-            self.time_list = self.time_list[-self.tail_len:]
-        # TODO check collide THERE !!!!
+    def update_pos(self, dt):
+        self.pos += self.vel * dt
+        pos = self.pos
+        tail = self.tail
+        new_dt = dt + tail[0][1]
+        if new_dt < self.tail_time / self.tail_len:
+            self.tail[0] = (tail[0][0], new_dt)
+        else:
+            self.tail.appendleft((pos.copy(), dt))
+            self.tail_coords.appendleft(pos[1])
+            self.tail_coords.appendleft(pos[0])
+            if self.tail_back > 0:
+                self.tail_back -= 2
 
     def round_size(self, m=3.):
-        return (self.mass ** .5) * m
+        return self.mass**.5 * m
+
+    def collide_check(self, obj):
+        tail = self.tail
+        if len(tail) < 2:
+            return False
+
+        first = tail[0][0]
+        second = tail[1][0]
+        d = first - second
+        f = second - obj.pos
+
+        a = np.dot(d, d)
+        b = 2. * np.dot(f, d)
+        c = np.dot(f, f) - obj.round_size()
+
+        discr = b**2 - 4 * a * c
+
+        if discr < 0:
+            return False
+        else:
+            discr = discr**.5
+            t1 = (-b - discr) / (2 * a)
+            t2 = (-b + discr) / (2 * a)
+            if t2 >= 0 and t2 <= 1:
+                return True
+            return False

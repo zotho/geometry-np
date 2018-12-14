@@ -25,15 +25,18 @@ class Fps():
         self.max_dt = time / width * 2.
 
         self.data = deque(maxlen=int(time * fps_max))
-        self.data.appendleft((self.fps_max, 0., (1., 0., 0.)))
+        # self.data.appendleft((self.fps_max, 0., (1., 0., 0.)))
 
     def update(self, dt):
         data = self.data
 
+        fps = 1. / dt
+
+        if not data:
+            data.appendleft((fps, dt, (0., 0., 0., 0.)))
+
         # ??? Need? Test in timeit!
         first = data[0]
-
-        fps = 1. / dt
 
         first_dt = first[1]
         first_fps = first[0]
@@ -58,7 +61,7 @@ class Fps():
                        abs(sin(fps / fps_max * pi - pi * i / 2.))) / 2.
                       for i in (1, 2 ,0)))
 
-    def draw(self, root, dt):
+    def draw(self, root):
         x = self.x
         y = self.y
         height = self.height
@@ -74,6 +77,7 @@ class Fps():
 
 
         with root.canvas:
+            '''
             Color(1,1,1,1)
             Line(points=[x, y, x, y + 1. / dt / fps_max * height])
             '''
@@ -89,4 +93,3 @@ class Fps():
                     Line(points=[t_xi, t_yi, xi, yi])
                 t_xi = xi
                 t_yi = yi
-            '''
