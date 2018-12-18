@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+from kivy.app import App
 from kivy.uix.widget import Widget
+from kivy.uix.effectwidget import EffectWidget
 from kivy.graphics.vertex_instructions import (Line, Ellipse)
 from kivy.graphics.context_instructions import Color
+from kivy.core.window import Window
 
 import numpy as np
 
@@ -19,6 +22,9 @@ class Space(Widget):
 
     def __init__(self, **kwargs):
         super(Space, self).__init__(**kwargs)
+
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
         self.num_dimension = 3
         self.objects = []
@@ -74,8 +80,8 @@ class Space(Widget):
         self.canvas.clear()
         with self.canvas:
             if self.touch_planet:
-                self.touch_planet.vel = np.array(self.to_num_dimension([0.]))
-                self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
+                self.touch_planet.vel = self.to_num_dimension([0.])
+                self.touch_planet.pos = self.to_num_dimension(self.touch_end)
                 Color(1, 1, 1, .6)
                 Line(points=[self.touch_start[0], self.touch_start[1], 
                              self.touch_end[0], self.touch_end[1]],
@@ -145,24 +151,56 @@ class Space(Widget):
                      width=obj.round_size(),
                      joint='round')
 
-            # Debug
+
             for obj in self.objects:
                 Color(1, 1, 0, 0.9)
                 r_size = obj.round_size()
                 Ellipse(pos=[obj.pos[i] - r_size for i in (0, 1)], size=[r_size*2., r_size*2.])
-            if self.show_vel:
+
+            sum_pos = self.to_num_dimension([0.])
+            sum_vel = np.array([0., 0., 0.])
+            sum_acc = self.to_num_dimension([0.])
+            sum_mass = 0.
+            # Debug
+            if self.show_vel or self.show_acc:
                 for obj in self.objects:
-                    Color(0, 0, 1, 1)
-                    norm_vel = self.sign_log(obj.vel)
-                    Line(points=[coords[-2], coords[-1],
-                                 coords[-2] + norm_vel[0], coords[-1] + norm_vel[1]])
-            if self.show_acc:
-                for obj in self.objects:
-                    Color(0, 1, 0, 1)
-                    norm_acc = self.sign_log(obj.acc)
-                    Line(points=[coords[-2], coords[-1],
-                                 coords[-2] + norm_acc[0], coords[-1] + norm_acc[1]])
-                    
+                    sum_acc += obj.acc * obj.mass # must be == 0
+                    sum_vel += obj.vel * obj.mass
+                    sum_pos += obj.pos * obj.mass
+                    sum_mass += obj.mass
+
+                    if self.show_vel:
+                        Color(0, 0, 1, 1)
+                        # norm_vel = self.sign_log(obj.vel)
+                        norm_vel = obj.vel
+                        Line(points=(obj.pos[0], obj.pos[1],
+                                     obj.pos[0] + norm_vel[0], obj.pos[1] + norm_vel[1]))
+                    if self.show_acc:
+                        Color(0, 1, 0, 1)
+                        norm_acc = self.sign_log(obj.acc)
+                        Line(points=(obj.pos[0], obj.pos[1],
+                                     obj.pos[0] + norm_acc[0], obj.pos[1] + norm_acc[1]))
+
+                sum_pos = sum_pos / sum_mass if sum_mass != 0. else 0.
+                sum_vel = sum_vel / sum_mass if sum_mass != 0. else 0.
+                sum_acc = sum_acc / sum_mass if sum_mass != 0. else 0.
+
+                # Sum position mark
+                mark_size = 10.
+                Color(1, 0, 0, 1)
+                print(f'sum_pos = {sum_pos}\nsum_vel = {sum_vel}\nsum_acc = {sum_acc}\n')
+                Line(points=(sum_pos[0], sum_pos[1] - mark_size, \
+                             sum_pos[0], sum_pos[1] + mark_size))
+                Line(points=(sum_pos[0] - mark_size, sum_pos[1], \
+                             sum_pos[0] + mark_size, sum_pos[1]))
+                # Sum vel
+                Color(0, 0, 1, 1)
+                Line(points=(sum_pos[0], sum_pos[1], \
+                             sum_pos[0] + sum_vel[0], sum_pos[1] + sum_vel[1]))
+                # Sum acc
+                Color(0, 0, 1, 1)
+                Line(points=(sum_pos[0], sum_pos[1],
+                             sum_pos[0] + sum_acc[0], sum_pos[1] + sum_acc[1]))
 
     def collide(self, p1, p2, t):
         pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
@@ -205,3 +243,17 @@ class Space(Widget):
         self.touch_planet.vel = np.array(self.to_num_dimension(self.touch_end)) - \
                                 np.array(self.to_num_dimension(self.touch_start))
         self.touch_planet = None
+
+
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        # print(keycode)
+        if keycode[1] == 'd' or keycode[0] == 100:
+            self.show_acc = not self.show_acc
+            self.show_vel = not self.show_vel
+        if keycode[1] == 'escape' or keycode[0] == 27:
+            App.get_running_app().stop()
+        return True
