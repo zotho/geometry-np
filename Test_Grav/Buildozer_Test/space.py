@@ -41,7 +41,6 @@ class Space(Widget):
                if len(arr) < self.num_dimension \
                else arr
 
-
     def sign_log(self, x, m = 10.):
         '''Normalise vector(np array) by log of it length
 

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-from kivy.graphics.vertex_instructions import (Rectangle,
-                                               Ellipse,
-                                               Line)
+from kivy.graphics.vertex_instructions import Line
 from kivy.uix.widget import Widget
 from kivy.graphics.context_instructions import Color
 
