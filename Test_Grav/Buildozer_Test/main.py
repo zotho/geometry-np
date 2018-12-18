@@ -2,7 +2,6 @@
 
 from kivy.app import App                # main app
 from kivy.clock import Clock            # for event loop
-from kivy.core.window import Window     # for keyboard
 
 from space import Space                 # Space class
 from fps import Fps                     # Fps meter

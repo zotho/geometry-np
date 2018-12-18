@@ -13,7 +13,9 @@ from math import log
 
 from planet import Planet 
 
-class Space(Widget):
+class Space(EffectWidget):
+    # effects: ew.HorizontalBlurEffect(size=0.1), ew.VerticalBlurEffect(size=0.1), ew.FXAAEffect()
+    
     __slots__ = 'num_dimension', 'objects', 'tails', \
                 'touch_start', 'touch_end', 'touch_planet', \
                 'show_acc', 'show_vel', \
