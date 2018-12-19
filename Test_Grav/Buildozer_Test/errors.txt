@@ -1,0 +1,7 @@
+[WARNING]: ndk_platform doesn't exist: /home/manjaro/.buildozer/android/platform/android-ndk-r9c/platforms/android-21/arch-arm
+[INFO]:    Found the following toolchain versions: ['4.6', '4.8', 'clang3.3']
+[INFO]:    Picking the latest gcc toolchain, here 4.8
+[ERROR]:   Build failed: python-for-android cannot continue due to the missing executables above
+
+
+https://github.com/kivy/buildozer/issues/312
