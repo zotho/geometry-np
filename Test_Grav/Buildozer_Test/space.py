@@ -5,7 +5,6 @@ from kivy.uix.widget import Widget
 from kivy.uix.effectwidget import EffectWidget
 from kivy.graphics.vertex_instructions import (Line, Ellipse)
 from kivy.graphics.context_instructions import Color
-from kivy.core.window import Window
 
 import numpy as np
 
@@ -24,9 +23,6 @@ class Space(EffectWidget):
 
     def __init__(self, **kwargs):
         super(Space, self).__init__(**kwargs)
-
-        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
-        self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
         self.num_dimension = 3
         self.objects = []
@@ -160,7 +156,7 @@ class Space(EffectWidget):
                 Ellipse(pos=[obj.pos[i] - r_size for i in (0, 1)], size=[r_size*2., r_size*2.])
 
             sum_pos = self.to_num_dimension([0.])
-            sum_vel = np.array([0., 0., 0.])
+            sum_vel = self.to_num_dimension([0.])
             sum_acc = self.to_num_dimension([0.])
             sum_mass = 0.
             # Debug
@@ -183,14 +179,14 @@ class Space(EffectWidget):
                         Line(points=(obj.pos[0], obj.pos[1],
                                      obj.pos[0] + norm_acc[0], obj.pos[1] + norm_acc[1]))
 
-                sum_pos = sum_pos / sum_mass if sum_mass != 0. else 0.
-                sum_vel = sum_vel / sum_mass if sum_mass != 0. else 0.
-                sum_acc = sum_acc / sum_mass if sum_mass != 0. else 0.
+                sum_pos = sum_pos / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+                sum_vel = sum_vel / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+                sum_acc = sum_acc / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
 
                 # Sum position mark
                 mark_size = 10.
                 Color(1, 0, 0, 1)
-                print(f'sum_pos = {sum_pos}\nsum_vel = {sum_vel}\nsum_acc = {sum_acc}\n')
+                # print(f'sum_pos = {sum_pos}\nsum_vel = {sum_vel}\nsum_acc = {sum_acc}\n')
                 Line(points=(sum_pos[0], sum_pos[1] - mark_size, \
                              sum_pos[0], sum_pos[1] + mark_size))
                 Line(points=(sum_pos[0] - mark_size, sum_pos[1], \
@@ -203,6 +199,20 @@ class Space(EffectWidget):
                 Color(0, 0, 1, 1)
                 Line(points=(sum_pos[0], sum_pos[1],
                              sum_pos[0] + sum_acc[0], sum_pos[1] + sum_acc[1]))
+
+    def set_vel(self, end_vel):
+        sum_vel = self.to_num_dimension([0.])
+        sum_mass = 0.
+        for obj in self.objects:
+            sum_vel += obj.vel * obj.mass
+            sum_mass += obj.mass
+
+        sum_vel = sum_vel / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+
+        dvel = self.to_num_dimension(end_vel) * sum_mass - sum_vel
+
+        for obj in self.objects:
+            obj.vel = obj.vel + dvel / obj.mass
 
     def collide(self, p1, p2, t):
         pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
@@ -246,16 +256,4 @@ class Space(EffectWidget):
                                 np.array(self.to_num_dimension(self.touch_start))
         self.touch_planet = None
 
-
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        # print(keycode)
-        if keycode[1] == 'd' or keycode[0] == 100:
-            self.show_acc = not self.show_acc
-            self.show_vel = not self.show_vel
-        if keycode[1] == 'escape' or keycode[0] == 27:
-            App.get_running_app().stop()
-        return True
+    
