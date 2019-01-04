@@ -4,6 +4,10 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 
+from numpy import array2string
+
+from functools import partial
+
 from space import Space
 from fps import Fps
 from lineprinter import LinePrinter
@@ -18,11 +22,26 @@ class GravApp(App):
         # work aroung bug [1]
         self.y = 0
 
-        self.printer = LinePrinter('[{level:<7}] [{sublevel:<12}] [{fps:>5.2f} fps] [{speed:>4.1f}x speed]',
+        self.printer = LinePrinter('[{level:<7}] '
+                                   '[{sublevel:<12}] '
+                                   '[{fps:>5.2f} fps] '
+                                   '[{speed:>4.1f}x speed] '
+                                   'mass={mass} '
+                                   'pos={pos} '
+                                   'vel={vel} '
+                                   'acc={acc}',
                                    level='INFO',
                                    sublevel='Log',
                                    fps=1.,
-                                   speed=1.)
+                                   speed=1.,
+                                   mass=0.,
+                                   pos=0.,
+                                   vel=0.,
+                                   acc=0.)
+
+        self.nparray2string = partial(array2string,
+                                      separator=',',
+                                      formatter={'float_kind':lambda x: f"{x:6.2f}"})
 
     # work aroung bug [1] https://github.com/kivy/kivy/issues/5359
     def to_window(self, x, y, initial=True, relative=False):
@@ -47,7 +66,12 @@ class GravApp(App):
 
         if abs(self.time - self.last_time) >= abs(self.time_mult):
             self.last_time = self.time
-            self.printer._print(fps=Clock.get_fps())
+            mass, pos, vel, acc = self.root.sum_attrib()
+            self.printer._print(fps=Clock.get_fps(),
+                                mass=mass,
+                                pos=self.nparray2string(pos),
+                                vel=self.nparray2string(vel),
+                                acc=self.nparray2string(acc))
 
         self.root.update(dt * self.time_mult, self.time)
 

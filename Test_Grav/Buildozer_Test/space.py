@@ -214,6 +214,23 @@ class Space(EffectWidget):
         for obj in self.objects:
             obj.vel = obj.vel + dvel / obj.mass
 
+    def sum_attrib(self):
+        sum_pos = self.to_num_dimension([0.])
+        sum_vel = self.to_num_dimension([0.])
+        sum_acc = self.to_num_dimension([0.])
+        sum_mass = 0.
+        for obj in self.objects:
+            sum_acc += obj.acc * obj.mass # must be == 0
+            sum_vel += obj.vel * obj.mass
+            sum_pos += obj.pos * obj.mass
+            sum_mass += obj.mass
+
+        sum_pos = sum_pos / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+        sum_vel = sum_vel / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+        sum_acc = sum_acc / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+        
+        return sum_mass, sum_pos, sum_vel, sum_acc
+
     def collide(self, p1, p2, t):
         pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
         vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
