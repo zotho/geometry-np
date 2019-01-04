@@ -1,19 +1,34 @@
 #!/usr/bin/env python3
 
-from kivy.app import App                # main app
-from kivy.clock import Clock            # for event loop
+from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.window import Window
 
-from space import Space                 # Space class
-from fps import Fps                     # Fps meter
+from space import Space
+from fps import Fps
+from lineprinter import LinePrinter
 
 class GravApp(App):
-
-    def build(self):
+    def __init__(self, *args, **kwargs):
+        super(GravApp, self).__init__(*args, **kwargs)
 
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
+        # work aroung bug [1]
+        self.y = 0
+
+        self.printer = LinePrinter('[{level:<7}] [{sublevel:<12}] [{fps:>5.2f} fps] [{speed:>4.1f}x speed]',
+                                   level='INFO',
+                                   sublevel='Log',
+                                   fps=1.,
+                                   speed=1.)
+
+    # work aroung bug [1] https://github.com/kivy/kivy/issues/5359
+    def to_window(self, x, y, initial=True, relative=False):
+        return x, y
+
+    def build(self, *args, **kwargs):
         self.draw_fps = True
         self.fps = Fps()
 
@@ -27,13 +42,12 @@ class GravApp(App):
         return self.root
 
     def update(self, dt):
-
         # self.dt = dt
         self.time += dt * self.time_mult
 
         if abs(self.time - self.last_time) >= abs(self.time_mult):
             self.last_time = self.time
-            print(Clock.get_fps())
+            self.printer._print(fps=Clock.get_fps())
 
         self.root.update(dt * self.time_mult, self.time)
 
@@ -55,10 +69,10 @@ class GravApp(App):
             App.get_running_app().stop()
         if keycode[1] == 'left' or keycode[0] == 276:
             self.time_mult -= 0.1
-            print(f'{self.time_mult:.1f} mult')
+            self.printer._print(speed=self.time_mult)
         if keycode[1] == 'right' or keycode[0] == 275:
             self.time_mult += 0.1
-            print(f'{self.time_mult:.1f} mult')
+            self.printer._print(speed=self.time_mult)
         if keycode[1] == 'down' or keycode[0] == 274:
             self.root.set_vel([0.])
         return True
