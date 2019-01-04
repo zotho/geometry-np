@@ -31,6 +31,11 @@
 #	Canvas examples
 # https://www.youtube.com/watch?v=2vz-hGW82WY
 
+#   Effects Widget
+# https://www.youtube.com/user/txprog/featured?disable_polymer=1
+
+# https://www.youtube.com/watch?v=KwIRVxVITEw
+
 {
     "detect_indentation": false,
     "font_size": 16,

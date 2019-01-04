@@ -2,7 +2,7 @@
 
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.uix.effectwidget import EffectWidget
+from kivy.uix.effectwidget import EffectWidget, HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
 from kivy.graphics.vertex_instructions import (Line, Ellipse)
 from kivy.graphics.context_instructions import Color
 
@@ -23,6 +23,8 @@ class Space(EffectWidget):
 
     def __init__(self, **kwargs):
         super(Space, self).__init__(**kwargs)
+
+        self.effects = [HorizontalBlurEffect(size=0.1),]
 
         self.num_dimension = 3
         self.objects = []
