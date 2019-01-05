@@ -38,6 +38,9 @@ class LinePrinter():
         stdout.write('\r' + string)
         stdout.flush()
 
+    def __del__(self, *args, **kwargs):
+        stdout.write('\n')
+
 if __name__ == '__main__':
     printer = LinePrinter()
     i = 0

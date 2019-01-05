@@ -85,21 +85,26 @@ class GravApp(App):
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         # print(keycode)
-        if keycode[1] == 'd' or keycode[0] == 100:
+        if 'd' in keycode or 100 in keycode:
             self.root.show_acc = not self.root.show_acc
             self.root.show_vel = not self.root.show_vel
-        if keycode[1] == 'escape' or keycode[0] == 27 or \
-                keycode[1] == 'q' or keycode[0] == 113:
+            sublevels = ('Log', 'Debug')
+            self.printer._print(sublevel=sublevels[self.root.show_acc])
+        if 'escape' in keycode or 27 in keycode or \
+                'q' in keycode or 113 in keycode:
+            del self.printer
             App.get_running_app().stop()
-        if keycode[1] == 'left' or keycode[0] == 276:
+        if 'left' in keycode or 276 in keycode:
             self.time_mult -= 0.1
             self.printer._print(speed=self.time_mult)
-        if keycode[1] == 'right' or keycode[0] == 275:
+        if 'right' in keycode or 275 in keycode:
             self.time_mult += 0.1
             self.printer._print(speed=self.time_mult)
-        if keycode[1] == 'down' or keycode[0] == 274:
+        if 'down' in keycode or 274 in keycode:
             self.root.set_vel([0.])
-        return True
+            _, _, vel, _ = self.root.sum_attrib()
+            self.printer._print(vel=self.nparray2string(vel))
+        return False
 
 if __name__ == "__main__":
     GravApp().run()
