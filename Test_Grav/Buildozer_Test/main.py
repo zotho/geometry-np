@@ -81,7 +81,7 @@ class GravApp(App):
 
         _, pos, _, _ = self.root.sum_attrib()
         # self.root.rotate(-pi/180., (0., 1., 0), (0., 0., 1.))
-        self.root.rotate(-pi/180., (1., 0., 0), (0., 0., 1.), pos)
+        self.root.rotate(dt * self.time_mult * -pi/18., (1., 0., 0), (0., 0., 1.), pos)
 
         self.root.update(dt * self.time_mult, self.time)
 

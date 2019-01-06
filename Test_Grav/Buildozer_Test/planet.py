@@ -9,7 +9,7 @@ class Planet():
                 'tail', 'tail_len', 'tail_time', 'tail_back', 'tail_coords'
 
     def __init__(self, pos=None, vel=None, acc=None, mass=1.,
-                 num_dimension=2, tail_len=10, tail_time=.1, tail_back=0):
+                 num_dimension=2, tail_len=50, tail_time=.1, tail_back=0):
         self.num_dimension = num_dimension
 
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
@@ -52,7 +52,6 @@ class Planet():
             self.tail_coords[0] = pos[0]
             self.tail_coords[1] = pos[1]
         else:
-            
             self.tail.appendleft((pos.copy(), dt))
             self.tail_coords.appendleft(pos[1])
             self.tail_coords.appendleft(pos[0])
@@ -62,25 +61,23 @@ class Planet():
     def rotate(self, matrix):
         num = self.num_dimension
         pos = self.pos.copy()
+
         pos.resize(num + 1)
         pos[-1] = 1.
-        '''
-        print(pos)
-        print(matrix)
-        print(np.dot(matrix, pos))
-        '''
         self.pos = np.resize(np.dot(matrix, pos), num)
+
         new_tail = deque(maxlen=self.tail_len)
-        # self.tail.appendleft((self.pos.copy(), 0.))
         new_tail_coords = deque(maxlen=self.tail_len*2)
-        # self.tail_coords.extendleft(self.pos[1::-1])
+        
         for tail_pos, tail_dt in self.tail:
             tail_pos = np.resize(tail_pos, num + 1)
             tail_pos[-1] = 1.
             new_tail_pos = np.resize(np.dot(matrix, tail_pos), num)
+            
             new_tail.append((new_tail_pos, tail_dt))
             new_tail_coords.append(new_tail_pos[0])
             new_tail_coords.append(new_tail_pos[1])
+        
         self.tail = new_tail
         self.tail_coords = new_tail_coords
 
