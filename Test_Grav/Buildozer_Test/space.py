@@ -7,6 +7,7 @@ from kivy.graphics.vertex_instructions import (Line, Ellipse)
 from kivy.graphics.context_instructions import Color
 
 import numpy as np
+from mgen import rotation_from_angle_and_plane
 
 from math import log
 
@@ -27,7 +28,7 @@ class Space(EffectWidget):
 
         # self.effects = [HorizontalBlurEffect(size=0.1),]
 
-        self.num_dimension = 2
+        self.num_dimension = 3
         self.objects = []
 
         self.tails = []
@@ -43,10 +44,20 @@ class Space(EffectWidget):
         self.inform_speed = 100. # not used
 
 
-    def to_num_dimension(self, arr):
+    def to_num_dimension(self, arr, up=0):
+        num = self.num_dimension + up
+        if isinstance(arr, (list, tuple)):
+            new_arr = np.array(arr)
+        else:
+            new_arr = arr.copy()
+
+        new_arr.resize(num)
+        return new_arr
+        '''
         return np.array(list(arr) + [0.]*(self.num_dimension - len(arr))) \
                if len(arr) < self.num_dimension \
                else arr
+        '''
 
     def sign_log(self, x, m = 10.):
         '''Normalise vector(np array) by log of it length
@@ -236,6 +247,31 @@ class Space(EffectWidget):
 
         for obj in self.objects:
             obj.pos = obj.pos + dpos
+
+    def rotate(self, angle, vector1, vector2, rot_point):
+        tnd = self.to_num_dimension
+
+        num = self.num_dimension + 1
+
+        rot_pos = tnd(rot_point).reshape(num - 1, 1)
+
+        matrix_translate = np.eye(num)
+        matrix_translate[0:num-1, num-1:num] = rot_pos * -1.
+
+        matrix_rot = rotation_from_angle_and_plane(angle,
+                                                   tnd(vector1, up=1),
+                                                   tnd(vector2, up=1))
+
+        matrix_rot = np.dot(matrix_rot, matrix_translate)
+
+        matrix_translate[0:num-1, num-1:num] = rot_pos
+
+        matrix_rot = np.dot(matrix_translate, matrix_rot)
+
+        # print(matrix_rot)
+
+        for obj in self.objects:
+            obj.rotate(matrix_rot)
 
     def sum_attrib(self):
         sum_pos = self.to_num_dimension([0.])

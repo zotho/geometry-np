@@ -39,6 +39,12 @@
 #   Rotation matrix numpy n-dim
 # https://github.com/NOhs/mgen
 
+#   Numpy paste arrays
+# https://stackoverflow.com/questions/7115437/how-to-embed-a-small-numpy-array-into-a-predefined-block-of-a-large-numpy-arra
+
+#   Numpy resize perfomanse
+# https://stackoverflow.com/questions/33256823/numpy-resize-array-filling-with-0
+
 
 {
     "detect_indentation": false,
