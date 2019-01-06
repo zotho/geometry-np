@@ -9,7 +9,7 @@ class Planet():
                 'tail', 'tail_len', 'tail_time', 'tail_back', 'tail_coords'
 
     def __init__(self, pos=None, vel=None, acc=None, mass=1.,
-                 num_dimension=2, tail_len=10, tail_time=10., tail_back=0):
+                 num_dimension=2, tail_len=10, tail_time=.1, tail_back=0):
         self.num_dimension = num_dimension
 
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
@@ -48,10 +48,11 @@ class Planet():
         tail = self.tail
         new_dt = dt + tail[0][1]
         if new_dt < self.tail_time / self.tail_len:
-            self.tail[0] = (tail[0][0], new_dt)
+            self.tail[0] = (pos.copy(), new_dt)
             self.tail_coords[0] = pos[0]
             self.tail_coords[1] = pos[1]
         else:
+            
             self.tail.appendleft((pos.copy(), dt))
             self.tail_coords.appendleft(pos[1])
             self.tail_coords.appendleft(pos[0])
