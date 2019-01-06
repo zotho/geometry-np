@@ -45,6 +45,9 @@
 #   Numpy resize perfomanse
 # https://stackoverflow.com/questions/33256823/numpy-resize-array-filling-with-0
 
+#   Transformation matrix on Wikipedia
+# https://en.wikipedia.org/wiki/Transformation_matrix
+
 
 {
     "detect_indentation": false,
