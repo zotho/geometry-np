@@ -56,7 +56,7 @@ class Planet():
                 self.tail_back -= 2
 
     def round_size(self, m=3.):
-        return self.mass**.5 * m
+        return self.mass**(1./self.num_dimension) * m
 
     def collide_check(self, obj):
         tail = self.tail

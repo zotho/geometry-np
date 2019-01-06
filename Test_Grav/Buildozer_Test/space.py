@@ -10,9 +10,10 @@ import numpy as np
 
 from math import log
 
-from planet import Planet 
+from planet import Planet
 
 class Space(EffectWidget):
+    #   Not working
     # effects: ew.HorizontalBlurEffect(size=0.1), ew.VerticalBlurEffect(size=0.1), ew.FXAAEffect()
     
     __slots__ = 'num_dimension', 'objects', 'tails', \
@@ -24,9 +25,9 @@ class Space(EffectWidget):
     def __init__(self, **kwargs):
         super(Space, self).__init__(**kwargs)
 
-        self.effects = [HorizontalBlurEffect(size=0.1),]
+        # self.effects = [HorizontalBlurEffect(size=0.1),]
 
-        self.num_dimension = 3
+        self.num_dimension = 2
         self.objects = []
 
         self.tails = []
@@ -39,7 +40,7 @@ class Space(EffectWidget):
         self.show_vel = False
 
         self.grav_const = 1000.
-        self.inform_speed = 100. # inused
+        self.inform_speed = 100. # not used
 
 
     def to_num_dimension(self, arr):
@@ -57,7 +58,7 @@ class Space(EffectWidget):
         return m * log(norm) / norm * x
 
     '''
-    def rect_size(self, mass, m=10.):  
+    def rect_size(self, mass, m=10.):
         return ((mass ** .5) * m,) * 2
     '''
 
@@ -209,12 +210,32 @@ class Space(EffectWidget):
             sum_vel += obj.vel * obj.mass
             sum_mass += obj.mass
 
-        sum_vel = sum_vel / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+        sum_vel = sum_vel if sum_mass != 0. else self.to_num_dimension([0.])
 
         dvel = self.to_num_dimension(end_vel) * sum_mass - sum_vel
 
+        '''
+        print('')
+        print(sum_vel)
+        print(dvel)
+        '''
+
         for obj in self.objects:
-            obj.vel = obj.vel + dvel / obj.mass
+            obj.vel = obj.vel + dvel / sum_mass
+
+    def set_pos(self, end_pos):
+        sum_pos = self.to_num_dimension([0.])
+        sum_mass = 0.
+        for obj in self.objects:
+            sum_pos += obj.pos * obj.mass
+            sum_mass += obj.mass
+
+        sum_pos = sum_pos / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
+
+        dpos = self.to_num_dimension(end_pos) - sum_pos
+
+        for obj in self.objects:
+            obj.pos = obj.pos + dpos
 
     def sum_attrib(self):
         sum_pos = self.to_num_dimension([0.])

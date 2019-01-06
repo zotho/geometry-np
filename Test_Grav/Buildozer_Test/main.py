@@ -29,7 +29,8 @@ class GravApp(App):
                                    'mass={mass} '
                                    'pos={pos} '
                                    'vel={vel} '
-                                   'acc={acc}',
+                                   'acc={acc} '
+                                   '{points} points',
                                    level='INFO',
                                    sublevel='Log',
                                    fps=1.,
@@ -37,7 +38,8 @@ class GravApp(App):
                                    mass=0.,
                                    pos=0.,
                                    vel=0.,
-                                   acc=0.)
+                                   acc=0.,
+                                   points=0)
 
         self.nparray2string = partial(array2string,
                                       separator=',',
@@ -71,7 +73,8 @@ class GravApp(App):
                                 mass=mass,
                                 pos=self.nparray2string(pos),
                                 vel=self.nparray2string(vel),
-                                acc=self.nparray2string(acc))
+                                acc=self.nparray2string(acc),
+                                points=len(self.root.objects))
 
         self.root.update(dt * self.time_mult, self.time)
 
@@ -104,6 +107,10 @@ class GravApp(App):
             self.root.set_vel([0.])
             _, _, vel, _ = self.root.sum_attrib()
             self.printer._print(vel=self.nparray2string(vel))
+        if 'up' in keycode or 273 in keycode:
+            self.root.set_pos(Window.center)
+            _, pos, _, _ = self.root.sum_attrib()
+            self.printer._print(vel=self.nparray2string(pos))
         return False
 
 if __name__ == "__main__":

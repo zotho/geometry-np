@@ -36,6 +36,10 @@
 
 # https://www.youtube.com/watch?v=KwIRVxVITEw
 
+#   Rotation matrix numpy n-dim
+# https://github.com/NOhs/mgen
+
+
 {
     "detect_indentation": false,
     "font_size": 16,
