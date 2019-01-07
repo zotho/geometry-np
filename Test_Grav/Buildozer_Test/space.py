@@ -262,6 +262,8 @@ class Space(EffectWidget):
                                                    tnd(vector1, up=1),
                                                    tnd(vector2, up=1))
 
+        matrix_from_origin = matrix_rot.copy()
+
         matrix_rot = np.dot(matrix_rot, matrix_translate)
 
         matrix_translate[0:num-1, num-1:num] = rot_pos
@@ -271,7 +273,7 @@ class Space(EffectWidget):
         # print(matrix_rot)
 
         for obj in self.objects:
-            obj.rotate(matrix_rot)
+            obj.rotate(matrix_rot, matrix_from_origin)
 
     def sum_attrib(self):
         sum_pos = self.to_num_dimension([0.])

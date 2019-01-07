@@ -58,13 +58,23 @@ class Planet():
             if self.tail_back > 0:
                 self.tail_back -= 2
 
-    def rotate(self, matrix):
+    def rotate(self, matrix, matrix_from_origin):
         num = self.num_dimension
         pos = self.pos.copy()
+        vel = self.vel.copy()
+        acc = self.acc.copy()
 
         pos.resize(num + 1)
         pos[-1] = 1.
         self.pos = np.resize(np.dot(matrix, pos), num)
+
+        vel.resize(num + 1)
+        vel[-1] = 1.
+        self.vel = np.resize(np.dot(matrix_from_origin, vel), num)
+
+        acc.resize(num + 1)
+        acc[-1] = 1.
+        self.acc = np.resize(np.dot(matrix_from_origin, acc), num)
 
         new_tail = deque(maxlen=self.tail_len)
         new_tail_coords = deque(maxlen=self.tail_len*2)
