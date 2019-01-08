@@ -2,7 +2,7 @@
 
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.uix.effectwidget import EffectWidget, HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
+from kivy.uix.effectwidget import EffectWidget # , HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
 from kivy.graphics.vertex_instructions import (Line, Ellipse)
 from kivy.graphics.context_instructions import Color
 
@@ -165,9 +165,23 @@ class Space(EffectWidget):
 
 
             for obj in self.objects:
-                Color(1, 1, 0, 0.9)
+                _, sum_pos1, _, _ = self.sum_attrib()
+                pos1 = obj.pos
+                dist_to_viewer = 1 # 0 to 1
+                if len(pos1) > 2:
+                    back_dist = 100.
+                    dist_to_viewer = (pos1[2] - sum_pos1[2] + back_dist) / back_dist / 2.
+                    if dist_to_viewer > 1.:
+                        dist_to_viewer = 1.
+                    if dist_to_viewer < 0.:
+                        dist_to_viewer = 0.
                 r_size = obj.round_size()
-                Ellipse(pos=[obj.pos[i] - r_size for i in (0, 1)], size=[r_size*2., r_size*2.])
+                Color(1 * dist_to_viewer,
+                      1 * dist_to_viewer,
+                      0.,
+                      0.9)
+                # (1. - dist_to_viewer) * 2. if dist_to_viewer < .5 else
+                Ellipse(pos=[pos1[0] - r_size, pos1[1] - r_size], size=[r_size*2., r_size*2.])
 
             sum_pos = self.to_num_dimension([0.])
             sum_vel = self.to_num_dimension([0.])

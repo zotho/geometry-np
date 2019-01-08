@@ -12,8 +12,7 @@ from space import Space
 from fps import Fps
 from lineprinter import LinePrinter
 
-# ANGLE = pi/18.
-ANGLE = pi/2.
+ANGLE = pi/18.
 
 class GravApp(App):
     def __init__(self, *args, **kwargs):
@@ -81,7 +80,7 @@ class GravApp(App):
 
         _, pos, _, _ = self.root.sum_attrib()
         # self.root.rotate(-pi/180., (0., 1., 0), (0., 0., 1.))
-        # self.root.rotate(dt * self.time_mult * -pi/9., (1., 0., 0), (0., 0., 1.), pos)
+        self.root.rotate(dt * self.time_mult * -ANGLE, (1., 0., 0), (0., 0., 1.), pos)
 
         self.root.update(dt * self.time_mult, self.time)
 
@@ -111,16 +110,16 @@ class GravApp(App):
         if 'shift' in modifiers:
             if 'left' in keycode or 276 in keycode:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(pi/18., (1., 0., 0), (0., 0., 1.), pos)
+                self.root.rotate(ANGLE, (1., 0., 0), (0., 0., 1.), pos)
             if 'right' in keycode or 275 in keycode:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(-pi/18., (1., 0., 0), (0., 0., 1.), pos)
+                self.root.rotate(ANGLE, (1., 0., 0), (0., 0., 1.), pos)
             if 'down' in keycode or 274 in keycode:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(pi/18., (0., 1., 0), (0., 0., 1.), pos)
+                self.root.rotate(ANGLE, (0., 1., 0), (0., 0., 1.), pos)
             if 'up' in keycode or 273 in keycode:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(-pi/18., (0., 1., 0), (0., 0., 1.), pos)
+                self.root.rotate(ANGLE, (0., 1., 0), (0., 0., 1.), pos)
         else:
             if 'left' in keycode or 276 in keycode:
                 self.time_mult -= 0.1
