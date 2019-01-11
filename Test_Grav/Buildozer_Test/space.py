@@ -340,14 +340,21 @@ class Space(EffectWidget):
                                    mass=1, 
                                    num_dimension=self.num_dimension)
         self.objects.append(self.touch_planet)
+        
+        return False
 
     def on_touch_move(self, touch):
-        self.touch_end = touch.pos
-        self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
+        if self.touch_planet:
+            self.touch_end = touch.pos
+            self.touch_planet.pos = np.array(self.to_num_dimension(self.touch_end))
+            return True
+        return False
 
     def on_touch_up(self, touch):
-        self.touch_planet.vel = np.array(self.to_num_dimension(self.touch_end)) - \
-                                np.array(self.to_num_dimension(self.touch_start))
-        self.touch_planet = None
-
+        if self.touch_planet:
+            self.touch_planet.vel = np.array(self.to_num_dimension(self.touch_end)) - \
+                                    np.array(self.to_num_dimension(self.touch_start))
+            self.touch_planet = None
+            return True
+        return False
     

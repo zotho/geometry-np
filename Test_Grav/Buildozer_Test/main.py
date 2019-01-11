@@ -87,17 +87,17 @@ class GravApp(App):
         if Config.getboolean('graphics', 'maximize'):
             Window.maximize()
         
-        window_pref = Window.left, Window.top, Window.size
-        def window_once(_):
-            w_p = window_pref
-            Window.left, Window.top, Window.size = w_p
         Window.show()
-        #Clock.schedule_once(window_once, 2)
+
+        self.root.bind(on_touch_down=self.on_touch_down,
+                       on_touch_move=self.on_touch_move,
+                       on_touch_up=self.on_touch_up)
         
         return self.root
 
     def update(self, dt):
-        print(f'left={Window.left}, top={Window.top}, width={Window.width}, height={Window.height}')
+        # print(f'left={Window.left}, top={Window.top}, width={Window.width}, height={Window.height}')
+        # print(self._keyboard_modifiers)
         # self.dt = dt
         self.time += dt * self.time_mult
 
@@ -121,6 +121,24 @@ class GravApp(App):
             self.fps.update(dt)
             self.fps.draw(self.root)
 
+    def on_touch_down(self, entity, touch):
+        if 'shift' in self._keyboard_modifiers:
+            
+            return True
+        return False
+
+    def on_touch_move(self, entity, touch):
+        if 'shift' in self._keyboard_modifiers:
+            
+            return True
+        return False
+
+    def on_touch_up(self, entity, touch):
+        if 'shift' in self._keyboard_modifiers:
+            
+            return True
+        return False
+
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
@@ -128,6 +146,7 @@ class GravApp(App):
     def _on_keyboard_up(self, keyboard, keycode):
         if keycode[1] in self._keyboard_modifiers:
             self._keyboard_modifiers.remove(keycode[1])
+            self.event_once.get_callback()()
         return False
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
@@ -144,11 +163,18 @@ class GravApp(App):
         format_string = self.printer.format_string
         data = self.printer.data
         def to_prev(*args, **kwargs):
+            '''
+            print(f'callback for {modifiers}')
+            if self._keyboard_modifiers:
+                self.printer.print(key='+'.join(self._keyboard_modifiers).upper())
+            else:
+            '''
             self.printer.format_string = format_string
             self.printer.data = data
             self.printer.print()
         self.event_once = Clock.create_trigger(to_prev, 1)
-        self.event_once()
+        if keycode[1] not in modifiers:
+            self.event_once()
         text = (modifiers if keycode[1] not in modifiers else []) + [keycode[1],]
         self.printer.print(format_string + ' key=[{key}]', key='+'.join(text).upper())
 
