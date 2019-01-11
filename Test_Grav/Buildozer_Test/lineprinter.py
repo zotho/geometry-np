@@ -25,12 +25,17 @@ class LinePrinter():
         list_cutted = string.rsplit(maxsplit=0)
         self.length = len(list_cutted[0]) if list_cutted else 0
 
-    def _print(self, *args, **kwargs):
+    def print(self, *args, **kwargs):
         if args:
             self.format_string = args[0]
         self.data.update(kwargs)
 
         string = self.format_string.format(**self.data)
+
+        # You can send lineprinter format string in key
+        # Don't use with notformat strings contain { or }. Otherwise comment this
+        string = string.format(**self.data)
+        
         string = string + ' '*(self.length - len(string))
         list_cutted = string.rsplit(maxsplit=0)
         self.length = len(list_cutted[0]) if list_cutted else 0

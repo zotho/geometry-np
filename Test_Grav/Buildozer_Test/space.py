@@ -48,8 +48,10 @@ class Space(EffectWidget):
         num = self.num_dimension + up
         if isinstance(arr, (list, tuple)):
             new_arr = np.array(arr)
-        else:
+        elif isinstance(arr, np.ndarray):
             new_arr = arr.copy()
+        else:
+            new_arr = np.array([0.]*(self.num_dimension - len(arr)))
 
         new_arr.resize(num)
         return new_arr
