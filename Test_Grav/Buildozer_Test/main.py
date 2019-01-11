@@ -40,7 +40,8 @@ class GravApp(App):
                                    '[{fps:>5.2f} fps] '
                                    '[{speed:>4.1f}x speed] '
                                    'npoints=[{points}]'
-                                   '{debug}',
+                                   '{debug}'
+                                   '{key_form}',
                                    level='INFO',
                                    sublevel='Log',
                                    fps=1.,
@@ -50,7 +51,10 @@ class GravApp(App):
                                    vel=0.,
                                    acc=0.,
                                    points=0,
-                                   debug='')
+                                   debug='',
+                                   key='',
+                                   key_form='',
+                                   key_form_default=' key=[{key}]')
 
         self.nparray2string = partial(array2string,
                                       separator=',',
@@ -123,7 +127,7 @@ class GravApp(App):
 
     def on_touch_down(self, entity, touch):
         if 'shift' in self._keyboard_modifiers:
-            
+            # TODO
             return True
         return False
 
@@ -144,9 +148,26 @@ class GravApp(App):
         self._keyboard = None
 
     def _on_keyboard_up(self, keyboard, keycode):
+        '''
+        self.event_once.get_callback()()
+        self.event_once.cancel()
+        '''
+
         if keycode[1] in self._keyboard_modifiers:
             self._keyboard_modifiers.remove(keycode[1])
-            self.event_once.get_callback()()
+            if self.event_once and self.event_once.is_triggered:
+                self.event_once.get_callback()()
+                self.event_once.cancel()
+
+        if self._keyboard_modifiers:
+            self.event_once = Clock.create_trigger(lambda *args: self.printer.print(key_form=self.printer.data['key_form_default'], key='+'.join(self._keyboard_modifiers).upper()), 1)
+            '''
+            self.printer.print(key_form=self.printer.data['key_form_default'],
+                               key='+'.join(self._keyboard_modifiers).upper())
+            '''
+        else:
+            self.event_once = Clock.create_trigger(lambda *args: self.printer.print(key_form=''), 1)
+        self.event_once()
         return False
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
@@ -154,36 +175,46 @@ class GravApp(App):
         print(keycode)
         print(text)
         print(modifiers)
-        '''
 
-        if self.event_once:
-            self.event_once.get_callback()()
+        '''
+        if self.event_once and self.event_once.is_triggered:
+            # self.event_once.get_callback()()
             self.event_once.cancel()
         
-        format_string = self.printer.format_string
-        data = self.printer.data
+        # format_string = self.printer.format_string
+        # data = self.printer.data
         def to_prev(*args, **kwargs):
             '''
             print(f'callback for {modifiers}')
-            if self._keyboard_modifiers:
-                self.printer.print(key='+'.join(self._keyboard_modifiers).upper())
-            else:
             '''
-            self.printer.format_string = format_string
-            self.printer.data = data
-            self.printer.print()
-        self.event_once = Clock.create_trigger(to_prev, 1)
+            #self.printer.format_string = str(format_string)
+            #self.printer.data = dict(data)
+            '''
+            if self._keyboard_modifiers and not kwargs.get('recur'):
+                # print(self._keyboard_modifiers)
+                self.event_once = Clock.create_trigger(partial(to_prev, recur=True), 1)
+                self.printer.print(format_string + ' key=[{key}]',
+                                   key='+'.join(self._keyboard_modifiers).upper())
+                self.event_once()
+            else:
+                self.printer.print()
+            '''
+            self.printer.print(key_form='')
+
+        # self.event_once = Clock.create_trigger(to_prev, 1)
+        self.event_once = Clock.create_trigger(lambda *args: self.printer.print(key_form=''), 1)
         if keycode[1] not in modifiers:
             self.event_once()
-        text = (modifiers if keycode[1] not in modifiers else []) + [keycode[1],]
-        self.printer.print(format_string + ' key=[{key}]', key='+'.join(text).upper())
+        text = modifiers + ([keycode[1],] if keycode[1] not in modifiers else [])
+        self.printer.print(key='+'.join(text).upper(),
+                           key_form=self.printer.data['key_form_default'])
 
         self._keyboard_modifiers = modifiers
 
         if 'shift' in modifiers:
             if 'left' == keycode[1] or 276 == keycode[0]:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(ANGLE, (1., 0., 0), (0., 0., 1.), pos)
+                self.root.rotate(-ANGLE, (1., 0., 0), (0., 0., 1.), pos)
             if 'right' == keycode[1] or 275 == keycode[0]:
                 _, pos, _, _ = self.root.sum_attrib()
                 self.root.rotate(ANGLE, (1., 0., 0), (0., 0., 1.), pos)
@@ -192,7 +223,7 @@ class GravApp(App):
                 self.root.rotate(ANGLE, (0., 1., 0), (0., 0., 1.), pos)
             if 'up' == keycode[1] or 273 == keycode[0]:
                 _, pos, _, _ = self.root.sum_attrib()
-                self.root.rotate(ANGLE, (0., 1., 0), (0., 0., 1.), pos)
+                self.root.rotate(-ANGLE, (0., 1., 0), (0., 0., 1.), pos)
         elif not modifiers:
             if 'd' == keycode[1] or 100 == keycode[0]:
                 self.root.show_acc = not self.root.show_acc
