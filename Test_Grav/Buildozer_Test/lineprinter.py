@@ -49,9 +49,13 @@ class LinePrinter():
 if __name__ == '__main__':
     printer = LinePrinter()
     i = 0
-    while True:
-        i += 1
-        printer._print('[{lol:{alig}{ln}}]', 
-                       lol=i%1000000, 
-                       alig='<^>'[i%60000//20000],
-                       ln=[35, 30, 25][i%60000//20000])
+    try:
+        while True:
+            i += 1
+            printer.print('[{lol:{alig}{ln}}]', 
+                          lol=i%1000000, 
+                          alig='<^>'[i%60000//20000],
+                          ln=[35, 30, 25][i%60000//20000])
+    except KeyboardInterrupt: # Ctrl+C
+        pass
+

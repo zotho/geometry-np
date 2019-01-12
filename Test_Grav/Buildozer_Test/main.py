@@ -4,6 +4,10 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
 
+# Temp
+from kivy.graphics.vertex_instructions import (Line, Ellipse)
+from kivy.graphics.context_instructions import Color
+
 from numpy import array2string, pi
 
 from functools import partial
@@ -55,6 +59,8 @@ class GravApp(App):
                                    key='',
                                    key_form='',
                                    key_form_default=' key=[{key}]')
+
+        self.last_rot = 0., (0., 0., 1.), (0., 1., 0.), Window.center
 
         self.nparray2string = partial(array2string,
                                       separator=',',
@@ -117,7 +123,7 @@ class GravApp(App):
 
         _, pos, _, _ = self.root.sum_attrib()
         # self.root.rotate(-pi/180., (0., 1., 0), (0., 0., 1.))
-        self.root.rotate(dt * self.time_mult * -ANGLE, (1., 0., 0), (0., 0., 1.), pos)
+        # self.root.rotate(dt * self.time_mult * -ANGLE, (1., 0., 0), (0., 0., 1.), pos)
 
         self.root.update(dt * self.time_mult, self.time)
 
@@ -127,19 +133,56 @@ class GravApp(App):
 
     def on_touch_down(self, entity, touch):
         if 'shift' in self._keyboard_modifiers:
-            # TODO
+            self.last_rot = 0., (0., 0., 1.), (0., 1., 0.), Window.center
             return True
         return False
 
     def on_touch_move(self, entity, touch):
         if 'shift' in self._keyboard_modifiers:
-            
+            if 'pos' in touch.profile:
+                # print()
+                # print(f'dpos={touch.dpos}')
+                dpos = tuple(map(lambda x:x[1]-x[0], zip(touch.opos,touch.pos)))
+                length = sum(map(lambda x:x**2, dpos))**.5
+                if length == 0:
+                    return True
+                ndpos = tuple(map(lambda x:x/length+0.01, dpos)) # (dx, dy)
+                # Rotation -pi/2
+                '''
+                rot = ((0., -1.),   
+                       (1.,  0.),)
+                # ((0., dx), (-1., dy))
+                x = ((0., -1.), (dx, dy))
+                y = (0., dx)
+                # (((0., -1.), (dx, dy)), ((1., 0.), (dx, dy)))
+                # (((0.0, 0.0), (-1.0, 1.0)), ((1.0, 0.0), (0.0, 1.0)))
+
+                # print(f'ndpos={tuple(ndpos)}')
+                xx = tuple(zip(rot, ((ndpos,)*2)))
+                # print(f'xx={xx}')
+                yy = tuple(map(lambda x: tuple(zip(*x)), xx))
+                # print(f'yy={yy}')
+                axis = tuple(map(lambda y: sum(map(lambda z: z[0]*z[1], y)), yy))
+
+                # _, pos, _, _ = self.root.sum_attrib()
+                '''
+                last_rot = (-self.last_rot[0],) + self.last_rot[1:]
+                # print(f'last_rot={last_rot}')
+                # print(f'self.last_rot={self.last_rot}')
+                self.root.rotate(*last_rot)
+                self.last_rot = (ANGLE/40.*length*ndpos[1]/abs(ndpos[1]), (0., 0., 1.), ndpos, Window.center)
+                self.root.rotate(*self.last_rot)
+                with self.root.canvas:
+                    Color(1, 1, 1, .3)
+                    Line(points=[touch.opos[0], touch.opos[1],
+                                 touch.pos[0], touch.pos[1]],
+                         width=2)
             return True
         return False
 
     def on_touch_up(self, entity, touch):
         if 'shift' in self._keyboard_modifiers:
-            
+            self.last_rot = 0., (0., 0., 1.), (0., 1., 0.), Window.center
             return True
         return False
 
