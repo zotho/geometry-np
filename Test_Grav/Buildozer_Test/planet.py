@@ -4,6 +4,29 @@ import numpy as np
 
 from collections import deque
 
+def custom_acc1(obj, space=None):
+    x, y = 600, 300
+    obj.acc = np.array((x, y) + (0.,)*(obj.num_dimension-2)) - obj.pos
+    obj.acc /= 100
+
+def custom_acc2(obj, space=None):
+    x, y = space.center_x, space.center_y
+    w, h = space.width, space.height
+    from math import sin, cos, pi
+    a = pi/6.
+    c = cos(a)
+    s = sin(a)
+    rot = np.array([[c, -s],   
+                    [s,  c]])
+    rot_matrix = np.zeros((obj.num_dimension, obj.num_dimension))
+    rot_matrix[:2, :2] = rot
+    obj.acc = np.array( (x, y)+(0.,)*(obj.num_dimension-2) ) - obj.pos
+    obj.acc = np.dot(rot_matrix, obj.acc)
+    obj.vel = obj.vel / 1.02
+    ox, oy, *_ = obj.pos
+    if ox < x-w/2 or ox > x+w/2 or oy < y-h/2 or oy > y+h/2:
+        obj.collided = True
+
 class Planet():
     __slots__ = 'num_dimension', 'pos', 'vel', 'acc', 'mass', 'collided', \
                 'tail', 'tail_len', 'tail_time', 'tail_back', 'tail_coords'
@@ -29,6 +52,8 @@ class Planet():
 
     def update_acc(self, dt, s):
         self.acc.fill(0.)
+        # Add gravity force
+        # Start function
         for obj in s.objects:
             if self is not obj:
                 dist = np.linalg.norm(self.pos - obj.pos)
@@ -38,6 +63,10 @@ class Planet():
                 else:
                     self.collided = obj
                     break
+        # End function
+        '''
+        custom_acc2(self, space=s)
+        '''
 
     def update_vel(self, dt):
         self.vel += self.acc * dt

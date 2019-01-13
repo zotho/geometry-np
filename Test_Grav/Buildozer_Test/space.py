@@ -13,7 +13,7 @@ from math import log
 
 from planet import Planet
 
-class Space(EffectWidget):
+class Space(Widget):
     #   Not working
     # effects: ew.HorizontalBlurEffect(size=0.1), ew.VerticalBlurEffect(size=0.1), ew.FXAAEffect()
     
@@ -61,6 +61,7 @@ class Space(EffectWidget):
                else arr
         '''
 
+    """
     def sign_log(self, x, m = 10.):
         '''Normalise vector(np array) by log of it length
 
@@ -69,6 +70,7 @@ class Space(EffectWidget):
         if norm < 1.:
             norm = 1.
         return m * log(norm) / norm * x
+    """
 
     '''
     def rect_size(self, mass, m=10.):
@@ -89,6 +91,10 @@ class Space(EffectWidget):
             obj.update_vel(dt)
         for obj in self.objects:
             obj.update_pos(dt)
+
+        # Sort by z coordinate for draw nerest last
+        if self.num_dimension > 2:
+            self.objects.sort(key=lambda x:x.pos[2])
 
         # Drawing
         self.canvas.clear()
@@ -201,11 +207,12 @@ class Space(EffectWidget):
                         Color(0, 0, 1, 1)
                         # norm_vel = self.sign_log(obj.vel)
                         norm_vel = obj.vel
-                        Line(points=(obj.pos[0], obj.pos[1],
-                                     obj.pos[0] + norm_vel[0], obj.pos[1] + norm_vel[1]))
+                        Line(points=(obj.pos[0]+1, obj.pos[1]+1,
+                                     obj.pos[0] + norm_vel[0]+1, obj.pos[1] + norm_vel[1]+1))
                     if self.show_acc:
                         Color(0, 1, 0, 1)
-                        norm_acc = self.sign_log(obj.acc)
+                        # norm_acc = self.sign_log(obj.acc)
+                        norm_acc = obj.vel
                         Line(points=(obj.pos[0], obj.pos[1],
                                      obj.pos[0] + norm_acc[0], obj.pos[1] + norm_acc[1]))
 
@@ -309,29 +316,31 @@ class Space(EffectWidget):
         return sum_mass, sum_pos, sum_vel, sum_acc
 
     def collide(self, p1, p2, t):
-        pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
-        vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
-        acc = list(np.array([0.] * self.num_dimension))
-        mass = p1.mass + p2.mass
-        self.tails.append([p1.tail_coords.copy(), p1.tail_back, len(p1.tail_coords) + p1.tail_back, p1.round_size()])
-        self.tails.append([p2.tail_coords.copy(), p2.tail_back, len(p2.tail_coords) + p2.tail_back, p2.round_size()])
-        p3 = Planet(pos=pos,
-                    vel=vel,
-                    acc=acc,
-                    mass=mass,
-                    num_dimension=self.num_dimension,
-                    tail_back=max(len(p1.tail_coords) + p1.tail_back,
-                                  len(p2.tail_coords) + p2.tail_back))
+        if isinstance(p2, Planet):
+            pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
+            vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
+            acc = list(np.array([0.] * self.num_dimension))
+            mass = p1.mass + p2.mass
+            self.tails.append([p1.tail_coords.copy(), p1.tail_back, len(p1.tail_coords) + p1.tail_back, p1.round_size()])
+            self.tails.append([p2.tail_coords.copy(), p2.tail_back, len(p2.tail_coords) + p2.tail_back, p2.round_size()])
+            p3 = Planet(pos=pos,
+                        vel=vel,
+                        acc=acc,
+                        mass=mass,
+                        num_dimension=self.num_dimension,
+                        tail_back=max(len(p1.tail_coords) + p1.tail_back,
+                                      len(p2.tail_coords) + p2.tail_back))
         
         for i in range(len(self.objects)):
             if p1 is self.objects[i]:
                 self.objects.pop(i)
                 break
-        for i in range(len(self.objects)):
-            if p2 is self.objects[i]:
-                self.objects.pop(i)
-                break
-        self.objects.append(p3)
+        if isinstance(p2, Planet):
+            for i in range(len(self.objects)):
+                if p2 is self.objects[i]:
+                    self.objects.pop(i)
+                    break
+            self.objects.append(p3)
 
     def on_touch_down(self, touch):
         self.touch_start = touch.pos

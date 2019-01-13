@@ -18,6 +18,7 @@ from lineprinter import LinePrinter
 
 ANGLE = pi/18.
 
+# For less wait to build
 from kivy.core.window import Window
 Window.borderless = True
 Window.hide()
@@ -77,6 +78,7 @@ class GravApp(App):
         self.time = 0.
         self.last_time = 0.
         self.time_mult = 1.
+        self.time_mult_pause = None
 
         Clock.schedule_interval(self.update, 0)
         self.event_once = None
@@ -255,6 +257,7 @@ class GravApp(App):
         self._keyboard_modifiers = modifiers
 
         if 'shift' in modifiers:
+            # Rotate
             if 'left' == keycode[1] or 276 == keycode[0]:
                 _, pos, _, _ = self.root.sum_attrib()
                 self.root.rotate(-ANGLE, (1., 0., 0), (0., 0., 1.), pos)
@@ -268,6 +271,8 @@ class GravApp(App):
                 _, pos, _, _ = self.root.sum_attrib()
                 self.root.rotate(-ANGLE, (0., 1., 0), (0., 0., 1.), pos)
         elif not modifiers:
+            
+            # Debug
             if 'd' == keycode[1] or 100 == keycode[0]:
                 self.root.show_acc = not self.root.show_acc
                 self.root.show_vel = not self.root.show_vel
@@ -275,6 +280,8 @@ class GravApp(App):
                 debug_format = ' mass={mass} pos={pos} vel={vel} acc={acc}'
                 self.printer.print(sublevel=sublevels[self.root.show_acc],
                                    debug=debug_format if self.root.show_acc else '')
+            
+            # Exit
             if 'escape' == keycode[1] or 27 == keycode[0] or \
                     'q' == keycode[1] or 113 == keycode[0]:
                 del self.printer
@@ -288,12 +295,24 @@ class GravApp(App):
 
                 App.get_running_app().stop()
 
+            # Speed
             if 'left' == keycode[1] or 276 == keycode[0]:
                 self.time_mult -= 0.1
                 self.printer.print(speed=self.time_mult)
+                if self.time_mult_pause:
+                    self.time_mult_pause = None
             if 'right' == keycode[1] or 275 == keycode[0]:
                 self.time_mult += 0.1
                 self.printer.print(speed=self.time_mult)
+                if self.time_mult_pause:
+                    self.time_mult_pause = None
+            if 'spacebar' == keycode[1] or 32 == keycode[0]:
+                if self.time_mult_pause:
+                    self.time_mult, self.time_mult_pause = self.time_mult_pause, None
+                else:
+                    self.time_mult, self.time_mult_pause = 0., self.time_mult
+            
+            # Speed and Position to zero
             if 'down' == keycode[1] or 274 == keycode[0]:
                 self.root.set_vel([0.])
                 _, _, vel, _ = self.root.sum_attrib()
