@@ -146,8 +146,8 @@ class Space(Widget):
                 # Tail
                 # TODO new Tail
                 coords = list(obj.tail_coords)
-                Color(1, 1, 1, 1)
-                Point(points=coords)
+                # Color(1, 1, 1, 1)
+                # Point(points=coords)
                 len_coords = len(coords)
                 if len_coords < 2:
                     continue
@@ -214,7 +214,7 @@ class Space(Widget):
                     if self.show_acc:
                         Color(0, 1, 0, 1)
                         # norm_acc = self.sign_log(obj.acc)
-                        norm_acc = obj.vel
+                        norm_acc = obj.acc
                         Line(points=(obj.pos[0], obj.pos[1],
                                      obj.pos[0] + norm_acc[0], obj.pos[1] + norm_acc[1]))
 

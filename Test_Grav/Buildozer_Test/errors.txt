@@ -5,3 +5,7 @@
 
 
 https://github.com/kivy/buildozer/issues/312
+
+
+# TODO LEARN
+https://github.com/kivy/KivEnt/wiki/An-Introduction-to-KivEnt
