@@ -3,7 +3,7 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.effectwidget import EffectWidget # , HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
-from kivy.graphics.vertex_instructions import (Line, Ellipse)
+from kivy.graphics.vertex_instructions import (Line, Ellipse, Point)
 from kivy.graphics.context_instructions import Color
 
 import numpy as np
@@ -146,6 +146,8 @@ class Space(Widget):
                 # Tail
                 # TODO new Tail
                 coords = list(obj.tail_coords)
+                Color(1, 1, 1, 1)
+                Point(points=coords)
                 len_coords = len(coords)
                 if len_coords < 2:
                     continue
