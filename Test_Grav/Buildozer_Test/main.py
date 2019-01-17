@@ -12,13 +12,23 @@ from numpy import array2string, pi
 
 from functools import partial
 
+__author__ = "Sviatoslav Alexeev"
+__email__ = "svjatoslavalekseef2@gmail.com"
+__status__ = "Developed"
+
+'''For more information see:
+www.github.com/zotho
+'''
+
 from space import Space
 from fps import Fps
 from lineprinter import LinePrinter
 
 ANGLE = pi/18.
 
-# For less wait to build
+'''Here window start create
+For less wait to build
+'''
 from kivy.core.window import Window
 Window.borderless = True
 Window.hide()
@@ -213,15 +223,15 @@ class GravApp(App):
         else:
             self.event_once = Clock.create_trigger(lambda *args: self.printer.print(key_form=''), 1)
         self.event_once()
-        return False
+        return self.root._on_keyboard_up(keyboard, keycode)
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         '''
         print(keycode)
         print(text)
         print(modifiers)
-
         '''
+
         if self.event_once and self.event_once.is_triggered:
             # self.event_once.get_callback()()
             self.event_once.cancel()
@@ -321,7 +331,8 @@ class GravApp(App):
                 self.root.set_pos(Window.center)
                 _, pos, _, _ = self.root.sum_attrib()
                 self.printer.print(vel=self.nparray2string(pos))
-        return False
+
+        return self.root._on_keyboard_down(keyboard, keycode, text, modifiers)
 
 if __name__ == "__main__":
     GravApp().run()

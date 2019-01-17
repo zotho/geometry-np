@@ -4,13 +4,16 @@ import numpy as np
 
 from collections import deque
 
+from custom_update import custom_acc1, custom_acc2, custom_acc3, custom_acc4, custom_acc5
+
 
 class Planet():
     __slots__ = 'num_dimension', 'pos', 'vel', 'acc', 'mass', 'collided', \
-                'tail', 'tail_len', 'tail_time', 'tail_back', 'tail_coords'
+                'tail', 'tail_len', 'tail_time', 'tail_back', 'tail_coords', 'data'
 
     def __init__(self, pos=None, vel=None, acc=None, mass=1.,
-                 num_dimension=2, tail_len=50, tail_time=.1, tail_back=0):
+                 num_dimension=2, tail_len=5, tail_time=.1, tail_back=0,
+                 **kwargs):
         self.num_dimension = num_dimension
 
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
@@ -18,6 +21,8 @@ class Planet():
         self.acc = np.array(acc) if acc else np.array([0.]*self.num_dimension)
         self.mass = np.array(mass)
         self.collided = False
+
+        self.data = kwargs
         
         # Tail
         self.tail_back = tail_back
@@ -30,6 +35,7 @@ class Planet():
 
     def update_acc(self, dt, s):
         self.acc.fill(0.)
+        '''
         # Add gravity force
         # Start function
         for obj in s.objects:
@@ -43,8 +49,8 @@ class Planet():
                     break
         # End function
         '''
-        custom_acc2(self, space=s)
-        '''
+        # See custom functions in file custom_update.py
+        custom_acc5(self, space=s)
 
     def update_vel(self, dt):
         self.vel += self.acc * dt
@@ -98,6 +104,29 @@ class Planet():
         self.tail = new_tail
         self.tail_coords = new_tail_coords
 
+    def translate(self, matrix):
+        num = self.num_dimension
+        pos = self.pos.copy()
+
+        pos.resize(num + 1)
+        pos[-1] = 1.
+        self.pos = np.resize(np.dot(matrix, pos), num)
+
+        new_tail = deque(maxlen=self.tail_len)
+        new_tail_coords = deque(maxlen=self.tail_len*2)
+        
+        for tail_pos, tail_dt in self.tail:
+            tail_pos = np.resize(tail_pos, num + 1)
+            tail_pos[-1] = 1.
+            new_tail_pos = np.resize(np.dot(matrix, tail_pos), num)
+            
+            new_tail.append((new_tail_pos, tail_dt))
+            new_tail_coords.append(new_tail_pos[0])
+            new_tail_coords.append(new_tail_pos[1])
+
+        self.tail = new_tail
+        self.tail_coords = new_tail_coords
+
     def round_size(self, m=3.):
         return self.mass**(1./self.num_dimension) * m
 
@@ -126,29 +155,3 @@ class Planet():
             if t2 >= 0. and t2 <= 1.:
                 return True
             return False
-
-# End of class
-
-# Custom function for update point
-def custom_acc1(obj, space=None):
-    x, y = 600, 300
-    obj.acc = np.array((x, y) + (0.,)*(obj.num_dimension-2)) - obj.pos
-    obj.acc /= 100
-
-def custom_acc2(obj, space=None):
-    x, y = space.center_x, space.center_y
-    w, h = space.width, space.height
-    from math import sin, cos, pi
-    a = pi/6.
-    c = cos(a)
-    s = sin(a)
-    rot = np.array([[c, -s],   
-                    [s,  c]])
-    rot_matrix = np.zeros((obj.num_dimension, obj.num_dimension))
-    rot_matrix[:2, :2] = rot
-    obj.acc = np.array( (x, y)+(0.,)*(obj.num_dimension-2) ) - obj.pos
-    obj.acc = np.dot(rot_matrix, obj.acc)
-    obj.vel = obj.vel / 1.02
-    ox, oy, *_ = obj.pos
-    if ox < x-w/2 or ox > x+w/2 or oy < y-h/2 or oy > y+h/2:
-        obj.collided = True

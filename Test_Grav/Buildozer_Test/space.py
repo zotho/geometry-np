@@ -20,13 +20,15 @@ class Space(Widget):
     __slots__ = 'num_dimension', 'objects', 'tails', \
                 'touch_start', 'touch_end', 'touch_planet', \
                 'show_acc', 'show_vel', \
-                'grav_const', 'inform_speed'
+                'grav_const', 'inform_speed', \
+                '_keyboard_modifiers'
 
 
     def __init__(self, **kwargs):
         super(Space, self).__init__(**kwargs)
 
         # self.effects = [HorizontalBlurEffect(size=0.1),]
+        self._keyboard_modifiers = []
 
         self.num_dimension = 3
         self.objects = []
@@ -332,6 +334,11 @@ class Space(Widget):
                         num_dimension=self.num_dimension,
                         tail_back=max(len(p1.tail_coords) + p1.tail_back,
                                       len(p2.tail_coords) + p2.tail_back))
+            charge1 = p1.data.get('charge', None)
+            charge2 = p2.data.get('charge', None)
+            if charge1 or charge2:
+                charge3 = charge1 + charge2
+                p3.data.update({'charge':charge3})
         
         for i in range(len(self.objects)):
             if p1 is self.objects[i]:
@@ -347,9 +354,20 @@ class Space(Widget):
     def on_touch_down(self, touch):
         self.touch_start = touch.pos
         self.touch_end = touch.pos
+        charge = 1.
+        '''
+        if 'button' in touch.profile:
+            if touch.button == 'right':
+                charge = -1.
+        '''
+        # print(f'keyboard_modifiers {self._keyboard_modifiers}')
+        if 'ctrl' in self._keyboard_modifiers:
+            charge = -1.
+            # print(f'charge {charge}')
         self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)),
                                    mass=1, 
-                                   num_dimension=self.num_dimension)
+                                   num_dimension=self.num_dimension,
+                                   charge=charge)
         self.objects.append(self.touch_planet)
         
         return False
@@ -368,4 +386,18 @@ class Space(Widget):
             self.touch_planet = None
             return True
         return False
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        self._keyboard_modifiers = modifiers
+        # print(f'keydown {self._keyboard_modifiers}')
+        return True
+
+    def _on_keyboard_up(self, keyboard, keycode):
+        key = keycode[1]
+        if 'ctrl' in key:
+            key = 'ctrl'
+        if key in self._keyboard_modifiers:
+            self._keyboard_modifiers.remove(key)
+        # print(f'keyup {self._keyboard_modifiers}')
+        return True
     
