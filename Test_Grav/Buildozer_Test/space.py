@@ -29,6 +29,7 @@ class Space(Widget):
 
         # self.effects = [HorizontalBlurEffect(size=0.1),]
         self._keyboard_modifiers = []
+        self.def_charge = 1.
 
         self.num_dimension = 3
         self.objects = []
@@ -336,7 +337,7 @@ class Space(Widget):
                                       len(p2.tail_coords) + p2.tail_back))
             charge1 = p1.data.get('charge', None)
             charge2 = p2.data.get('charge', None)
-            if charge1 or charge2:
+            if charge1 and charge2:
                 charge3 = charge1 + charge2
                 p3.data.update({'charge':charge3})
         
@@ -354,7 +355,7 @@ class Space(Widget):
     def on_touch_down(self, touch):
         self.touch_start = touch.pos
         self.touch_end = touch.pos
-        charge = 1.
+        charge = self.def_charge
         '''
         if 'button' in touch.profile:
             if touch.button == 'right':
@@ -362,7 +363,7 @@ class Space(Widget):
         '''
         # print(f'keyboard_modifiers {self._keyboard_modifiers}')
         if 'ctrl' in self._keyboard_modifiers:
-            charge = -1.
+            charge *= -1.
             # print(f'charge {charge}')
         self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)),
                                    mass=1, 
@@ -390,6 +391,10 @@ class Space(Widget):
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         self._keyboard_modifiers = modifiers
         # print(f'keydown {self._keyboard_modifiers}')
+
+        # In case custom_acc5 use
+        if 'a' == keycode[1]: #or 274 == keycode[0]:
+            self.def_charge *= -1.
         return True
 
     def _on_keyboard_up(self, keyboard, keycode):

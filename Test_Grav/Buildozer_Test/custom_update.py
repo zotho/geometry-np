@@ -15,12 +15,14 @@ def map_(x, l, r, lt=None, rt=None, fl=None, fr=None):
         return r if fr is None else fr
     return x
 
-# Custom function for update point
+# Simple custom function for update point
 def custom_acc1(obj, space=None):
     x, y = 600, 300
     obj.acc = np.array((x, y) + (0.,)*(obj.num_dimension-2)) - obj.pos
     obj.acc /= 100
 
+# Rotate around center
+# Delete if collide with edge
 def custom_acc2(obj, space=None):
     x, y = space.center_x, space.center_y
     w, h = space.width, space.height
@@ -39,6 +41,7 @@ def custom_acc2(obj, space=None):
     if ox < x-w/2 or ox > x+w/2 or oy < y-h/2 or oy > y+h/2:
         obj.collided = True
 
+# Collide to the edges and translate to other side
 def custom_acc3(obj, space=None):
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
@@ -55,6 +58,7 @@ def custom_acc3(obj, space=None):
         matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
         obj.translate(matrix_translate)
 
+# Collide to the edges and reflect
 def custom_acc3_1(obj, space=None):
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
@@ -77,6 +81,7 @@ def custom_acc3_1(obj, space=None):
             obj.vel[1] = -obj.vel[1] / 2.
             obj.vel[0] = obj.vel[0] * 0.7
 
+# Round collide space
 def custom_acc3_2(obj, space=None):
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
@@ -104,6 +109,7 @@ def custom_acc3_2(obj, space=None):
         c = (ox2-x)/rp
         s = (oy2-y)/rp
         # print(f'a={a} c={c} s={s}')
+        # Reflect in round
         rot = np.array([[c**2-s**2, 2*c*s],   
                         [2*c*s,     s**2-c**2]])
         rot_matrix = np.zeros((obj.num_dimension, obj.num_dimension))
@@ -112,7 +118,8 @@ def custom_acc3_2(obj, space=None):
         matrix_translate = np.eye(num+1)
         matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
         obj.translate(matrix_translate)
-        obj.vel *= -0.9
+        # Energy of collide
+        obj.vel *= -1.
         obj.vel = np.dot(rot_matrix, obj.vel)
         '''
         if dx != 0.:
@@ -123,6 +130,7 @@ def custom_acc3_2(obj, space=None):
             #obj.vel[0] = obj.vel[0] * 0.7
         '''
 
+# Sin-like path particles
 def custom_acc4(obj, space=None):
     custom_acc3(obj, space=space)
 
@@ -138,8 +146,8 @@ def custom_acc4(obj, space=None):
     obj.vel[1] = 70*sin(ox/20) * vx / abs(vx)
     obj.vel[:2] = obj.vel[:2] / np.linalg.norm(obj.vel[:2]) * 150
 
+# Charged particles in round collide space
 def custom_acc5(obj, space=None):
-    # Not good
     custom_acc3_2(obj, space=space)
 
     for other in space.objects:

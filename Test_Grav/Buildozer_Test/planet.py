@@ -4,7 +4,7 @@ import numpy as np
 
 from collections import deque
 
-from custom_update import custom_acc1, custom_acc2, custom_acc3, custom_acc4, custom_acc5
+from custom_update import *
 
 
 class Planet():
@@ -50,7 +50,7 @@ class Planet():
         # End function
         '''
         # See custom functions in file custom_update.py
-        custom_acc5(self, space=s)
+        custom_acc3_1(self, space=s)
 
     def update_vel(self, dt):
         self.vel += self.acc * dt
