@@ -93,13 +93,17 @@ def custom_acc3_2(obj, space=None):
         oy2 = (oy - y) / rp * r + y 
         dx, dy = ox2-ox, oy2-oy
 
+        '''
         from math import sin, cos, pi, atan2
         a = atan2(oy2/rp, ox2/rp) + pi/2.
         if ox2 < 0.:
             a -= pi/2.
         c = cos(a)
         s = sin(a)
-        print(f'a{a} c{c} s{s}')
+        '''
+        c = (ox2-x)/rp
+        s = (oy2-y)/rp
+        # print(f'a={a} c={c} s={s}')
         rot = np.array([[c**2-s**2, 2*c*s],   
                         [2*c*s,     s**2-c**2]])
         rot_matrix = np.zeros((obj.num_dimension, obj.num_dimension))
@@ -108,6 +112,7 @@ def custom_acc3_2(obj, space=None):
         matrix_translate = np.eye(num+1)
         matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
         obj.translate(matrix_translate)
+        obj.vel *= -0.9
         obj.vel = np.dot(rot_matrix, obj.vel)
         '''
         if dx != 0.:
@@ -146,7 +151,7 @@ def custom_acc5(obj, space=None):
                 charge1 = obj.data.get('charge', 1.)
                 charge2 = other.data.get('charge', -1.)
                 charge = charge1 * charge2
-                obj.acc += (other.pos - obj.pos) * -charge * other.mass * space.grav_const / dist**2
+                obj.acc += (other.pos - obj.pos) * -charge * space.grav_const / dist**2
             else:
                 obj.collided = other
                 break
