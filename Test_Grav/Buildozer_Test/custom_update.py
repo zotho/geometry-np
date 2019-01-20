@@ -15,15 +15,17 @@ def map_(x, l, r, lt=None, rt=None, fl=None, fr=None):
         return r if fr is None else fr
     return x
 
-# Simple custom function for update point
-def custom_acc1(obj, space=None):
+def custom_acc1(obj, space=None, **kwargs):
+    '''Simple custom function for update point
+    '''
     x, y = 600, 300
     obj.acc = np.array((x, y) + (0.,)*(obj.num_dimension-2)) - obj.pos
     obj.acc /= 100
 
-# Rotate around center
-# Delete if collide with edge
-def custom_acc2(obj, space=None):
+def custom_acc2(obj, space=None, **kwargs):
+    '''Rotate around center
+    Delete if collide with edge
+    '''
     x, y = space.center_x, space.center_y
     w, h = space.width, space.height
     from math import sin, cos, pi
@@ -41,8 +43,9 @@ def custom_acc2(obj, space=None):
     if ox < x-w/2 or ox > x+w/2 or oy < y-h/2 or oy > y+h/2:
         obj.collided = True
 
-# Collide to the edges and translate to other side
-def custom_acc3(obj, space=None):
+def custom_acc3(obj, space=None, **kwargs):
+    '''Collide to the edges and translate to other side
+    '''
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
     w, h = space.width, space.height
@@ -58,8 +61,9 @@ def custom_acc3(obj, space=None):
         matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
         obj.translate(matrix_translate)
 
-# Collide to the edges and reflect
-def custom_acc3_1(obj, space=None):
+def custom_acc3_1(obj, space=None, **kwargs):
+    '''Collide to the edges and reflect
+    '''
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
     w, h = space.width, space.height
@@ -81,8 +85,9 @@ def custom_acc3_1(obj, space=None):
             obj.vel[1] = -obj.vel[1] / 2.
             obj.vel[0] = obj.vel[0] * 0.7
 
-# Round collide space
-def custom_acc3_2(obj, space=None):
+def custom_acc3_2(obj, space=None, **kwargs):
+    '''Round collide space
+    '''
     num = obj.num_dimension
     x, y = space.center_x, space.center_y
     w, h = space.width, space.height
@@ -91,9 +96,10 @@ def custom_acc3_2(obj, space=None):
 
     ox, oy, *_ = obj.pos
 
-    rp = np.linalg.norm(obj.pos - space.to_num_dimension((x, y,)))
+    rp = np.linalg.norm(obj.pos - space.to_num_dimension((x, y,))) + obj.round_size()
 
     if rp > r:
+        # rp += kwargs.get('dt', 0.) * np.linalg.norm(obj.vel)
         ox2 = (ox - x) / rp * r + x
         oy2 = (oy - y) / rp * r + y 
         dx, dy = ox2-ox, oy2-oy
@@ -119,7 +125,7 @@ def custom_acc3_2(obj, space=None):
         matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
         obj.translate(matrix_translate)
         # Energy of collide
-        obj.vel *= -1.
+        obj.vel *= -0.9
         obj.vel = np.dot(rot_matrix, obj.vel)
         '''
         if dx != 0.:
@@ -129,9 +135,9 @@ def custom_acc3_2(obj, space=None):
             obj.vel[1] = -obj.vel[1] #/ 2.
             #obj.vel[0] = obj.vel[0] * 0.7
         '''
-
-# Sin-like path particles
-def custom_acc4(obj, space=None):
+def custom_acc4(obj, space=None, **kwargs):
+    '''Sin-like path particles
+    '''
     custom_acc3(obj, space=space)
 
     ox, oy, *_ = obj.pos
@@ -146,9 +152,10 @@ def custom_acc4(obj, space=None):
     obj.vel[1] = 70*sin(ox/20) * vx / abs(vx)
     obj.vel[:2] = obj.vel[:2] / np.linalg.norm(obj.vel[:2]) * 150
 
-# Charged particles in round collide space
-def custom_acc5(obj, space=None):
-    custom_acc3_2(obj, space=space)
+def custom_acc5(obj, space=None, **kwargs):
+    '''Charged particles in round collide space
+    '''
+    custom_acc3_2(obj, space=space, **kwargs)
 
     for other in space.objects:
         if obj is not other:
@@ -156,10 +163,21 @@ def custom_acc5(obj, space=None):
             
             if not(dist < obj.round_size() + other.round_size() or \
                     obj.collide_check(other)):
-                charge1 = obj.data.get('charge', 1.)
-                charge2 = other.data.get('charge', -1.)
+                charge1 = obj.data.get('charge', None)
+                charge2 = other.data.get('charge', None)
                 charge = charge1 * charge2
                 obj.acc += (other.pos - obj.pos) * -charge * space.grav_const / dist**2
+            else:
+                obj.collided = other
+                break
+
+def custom_acc6(obj, space=None, **kwargs):
+    for other in space.objects:
+        if obj is not other:
+            dist = np.linalg.norm(obj.pos - other.pos)
+            if not(dist < obj.round_size() + other.round_size() or \
+                    obj.collide_check(other)):
+                obj.acc += (other.pos - obj.pos) * other.mass * space.grav_const / dist**2
             else:
                 obj.collided = other
                 break

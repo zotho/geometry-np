@@ -2,16 +2,17 @@
 
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.uix.effectwidget import EffectWidget # , HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
+# from kivy.uix.effectwidget import EffectWidget # , HorizontalBlurEffect, VerticalBlurEffect, FXAAEffect
 from kivy.graphics.vertex_instructions import (Line, Ellipse, Point)
 from kivy.graphics.context_instructions import Color
 
 import numpy as np
 from mgen import rotation_from_angle_and_plane
 
-from math import log
+# from math import log
 
-from planet import Planet
+from planet import Planet, HAS_CHARGE, ROUND_SPACE
+
 
 class Space(Widget):
     #   Not working
@@ -29,10 +30,12 @@ class Space(Widget):
 
         # self.effects = [HorizontalBlurEffect(size=0.1),]
         self._keyboard_modifiers = []
-        self.def_charge = 1.
+        if HAS_CHARGE:
+            self.def_charge = 1.
 
         self.num_dimension = 3
         self.objects = []
+        self.objects_to_append = []
 
         self.tails = []
 
@@ -44,7 +47,7 @@ class Space(Widget):
         self.show_vel = False
 
         self.grav_const = 1000.
-        self.inform_speed = 100. # not used
+        # self.inform_speed = 100. # not used
 
 
     def to_num_dimension(self, arr, up=0):
@@ -81,6 +84,12 @@ class Space(Widget):
     '''
 
     def update(self, dt, t):
+
+        # Append objects
+        for p in self.objects_to_append:
+            self.objects.append(p)
+        self.objects_to_append.clear()
+
         # Update physics
         while True:
             for obj in self.objects:
@@ -102,6 +111,15 @@ class Space(Widget):
         # Drawing
         self.canvas.clear()
         with self.canvas:
+            # Background
+            if ROUND_SPACE:
+                x, y = self.center_x, self.center_y
+                w, h = self.width, self.height
+                r = min(w, h) / 2 - 10
+                Color(1, 1, 1, 1)
+                Line(circle=(x, y, r))
+
+            # Touch white line
             if self.touch_planet:
                 self.touch_planet.vel = self.to_num_dimension([0.])
                 self.touch_planet.pos = self.to_num_dimension(self.touch_end)
@@ -109,7 +127,8 @@ class Space(Widget):
                 Line(points=[self.touch_start[0], self.touch_start[1], 
                              self.touch_end[0], self.touch_end[1]],
                      width=2)
-            # print(f'len_tails = {len(self.tails)}')
+
+            # Space tails
             for tail in self.tails:
                 if tail[1] + 2 == tail[2]:
                     self.tails.remove(tail)
@@ -145,6 +164,7 @@ class Space(Widget):
                 tail[0].pop()
                 tail[1] += 2
 
+            # Planets
             for obj in self.objects:
                 # Tail
                 # TODO new Tail
@@ -188,11 +208,43 @@ class Space(Widget):
                         dist_to_viewer = 1.
                     if dist_to_viewer < 0.:
                         dist_to_viewer = 0.
+                
                 r_size = obj.round_size()
-                Color(1 * dist_to_viewer,
-                      1 * dist_to_viewer,
-                      0.,
-                      0.9)
+                if HAS_CHARGE:
+                    charge = obj.data.get('charge', 0.)
+                    # print(f'mass={r_size}, charge={charge}')
+                    colors = [0.,
+                              1. * dist_to_viewer,
+                              0.,
+                              0.9]
+                    if charge > 1.:
+                        colors = [1.,
+                                  1. * dist_to_viewer / charge,
+                                  0.,
+                                  0.9]
+                    elif charge < -1.:
+                        colors = [.0,
+                                  1. * dist_to_viewer / -charge,
+                                  1.,
+                                  0.9]
+                    elif charge > 0.:
+                        colors = [charge,
+                                  1. * dist_to_viewer,
+                                  0.,
+                                  0.9]
+                    elif charge < 0.:
+                        colors = [0.,
+                                  1. * dist_to_viewer,
+                                  -charge,
+                                  0.9]
+                    Color(*colors)
+                else:
+                    Color(1 * dist_to_viewer,
+                          1 * dist_to_viewer,
+                          0.,
+                          0.9)
+                '''
+                '''
                 # (1. - dist_to_viewer) * 2. if dist_to_viewer < .5 else
                 Ellipse(pos=[pos1[0] - r_size, pos1[1] - r_size], size=[r_size*2., r_size*2.])
 
@@ -212,13 +264,13 @@ class Space(Widget):
                         Color(0, 0, 1, 1)
                         # norm_vel = self.sign_log(obj.vel)
                         norm_vel = obj.vel
-                        Line(points=(obj.pos[0]+1, obj.pos[1]+1,
-                                     obj.pos[0] + norm_vel[0]+1, obj.pos[1] + norm_vel[1]+1))
+                        Line(points=(obj.pos[0],               obj.pos[1],
+                                     obj.pos[0] + norm_vel[0], obj.pos[1] + norm_vel[1]))
                     if self.show_acc:
                         Color(0, 1, 0, 1)
                         # norm_acc = self.sign_log(obj.acc)
                         norm_acc = obj.acc
-                        Line(points=(obj.pos[0], obj.pos[1],
+                        Line(points=(obj.pos[0],               obj.pos[1],
                                      obj.pos[0] + norm_acc[0], obj.pos[1] + norm_acc[1]))
 
                 sum_pos = sum_pos / sum_mass if sum_mass != 0. else self.to_num_dimension([0.])
@@ -229,17 +281,17 @@ class Space(Widget):
                 mark_size = 10.
                 Color(1, 0, 0, 1)
                 # print(f'sum_pos = {sum_pos}\nsum_vel = {sum_vel}\nsum_acc = {sum_acc}\n')
-                Line(points=(sum_pos[0], sum_pos[1] - mark_size, \
+                Line(points=(sum_pos[0], sum_pos[1] - mark_size,
                              sum_pos[0], sum_pos[1] + mark_size))
-                Line(points=(sum_pos[0] - mark_size, sum_pos[1], \
+                Line(points=(sum_pos[0] - mark_size, sum_pos[1],
                              sum_pos[0] + mark_size, sum_pos[1]))
                 # Sum vel
                 Color(0, 0, 1, 1)
-                Line(points=(sum_pos[0], sum_pos[1], \
+                Line(points=(sum_pos[0],              sum_pos[1], 
                              sum_pos[0] + sum_vel[0], sum_pos[1] + sum_vel[1]))
                 # Sum acc
                 Color(0, 0, 1, 1)
-                Line(points=(sum_pos[0], sum_pos[1],
+                Line(points=(sum_pos[0],              sum_pos[1],
                              sum_pos[0] + sum_acc[0], sum_pos[1] + sum_acc[1]))
 
     def set_vel(self, end_vel):
@@ -263,6 +315,8 @@ class Space(Widget):
             obj.vel = obj.vel + dvel / sum_mass
 
     def set_pos(self, end_pos):
+        num = self.num_dimension
+
         sum_pos = self.to_num_dimension([0.])
         sum_mass = 0.
         for obj in self.objects:
@@ -274,7 +328,11 @@ class Space(Widget):
         dpos = self.to_num_dimension(end_pos) - sum_pos
 
         for obj in self.objects:
-            obj.pos = obj.pos + dpos
+            matrix_translate = np.eye(num + 1)
+            matrix_translate[0:num, num:num+1] = np.reshape(dpos, (num, 1))
+            obj.translate(matrix_translate)
+            # Old
+            # obj.pos = obj.pos + dpos
 
     def rotate(self, angle, vector1, vector2, rot_point):
         tnd = self.to_num_dimension
@@ -321,55 +379,69 @@ class Space(Widget):
         return sum_mass, sum_pos, sum_vel, sum_acc
 
     def collide(self, p1, p2, t):
-        if isinstance(p2, Planet):
-            pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
-            vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
-            acc = list(np.array([0.] * self.num_dimension))
-            mass = p1.mass + p2.mass
-            self.tails.append([p1.tail_coords.copy(), p1.tail_back, len(p1.tail_coords) + p1.tail_back, p1.round_size()])
-            self.tails.append([p2.tail_coords.copy(), p2.tail_back, len(p2.tail_coords) + p2.tail_back, p2.round_size()])
-            p3 = Planet(pos=pos,
-                        vel=vel,
-                        acc=acc,
-                        mass=mass,
-                        num_dimension=self.num_dimension,
-                        tail_back=max(len(p1.tail_coords) + p1.tail_back,
-                                      len(p2.tail_coords) + p2.tail_back))
+        assert isinstance(p2, Planet)
+        
+        pos = list((p1.pos * p1.mass + p2.pos * p2.mass) / (p1.mass + p2.mass))
+        vel = list((p1.vel * p1.mass + p2.vel * p2.mass) / (p1.mass + p2.mass))
+        acc = list(np.array([0.] * self.num_dimension))
+        mass = p1.mass + p2.mass
+        self.tails.append([p1.tail_coords.copy(), p1.tail_back, len(p1.tail_coords) + p1.tail_back, p1.round_size()])
+        self.tails.append([p2.tail_coords.copy(), p2.tail_back, len(p2.tail_coords) + p2.tail_back, p2.round_size()])
+        p3 = Planet(pos=pos,
+                    vel=vel,
+                    acc=acc,
+                    mass=mass,
+                    num_dimension=self.num_dimension,
+                    tail_back=max(len(p1.tail_coords) + p1.tail_back,
+                                  len(p2.tail_coords) + p2.tail_back))
+        if HAS_CHARGE:
             charge1 = p1.data.get('charge', None)
             charge2 = p2.data.get('charge', None)
-            if charge1 and charge2:
+            if charge1 is not None and charge2 is not None:
                 charge3 = charge1 + charge2
                 p3.data.update({'charge':charge3})
-        
+
+        self.pop(p1)
+        self.pop(p2)
+        self.objects.append(p3)
+        # print(p3.data)
+
+    # Unsafe for async
+    def pop(self, p):
         for i in range(len(self.objects)):
-            if p1 is self.objects[i]:
+            if p is self.objects[i]:
                 self.objects.pop(i)
                 break
-        if isinstance(p2, Planet):
-            for i in range(len(self.objects)):
-                if p2 is self.objects[i]:
-                    self.objects.pop(i)
-                    break
-            self.objects.append(p3)
+
+    # Safe for async
+    def append(self, p):
+        self.objects_to_append.append(p)
 
     def on_touch_down(self, touch):
         self.touch_start = touch.pos
         self.touch_end = touch.pos
-        charge = self.def_charge
-        '''
-        if 'button' in touch.profile:
-            if touch.button == 'right':
-                charge = -1.
-        '''
-        # print(f'keyboard_modifiers {self._keyboard_modifiers}')
-        if 'ctrl' in self._keyboard_modifiers:
-            charge *= -1.
-            # print(f'charge {charge}')
-        self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)),
-                                   mass=1, 
-                                   num_dimension=self.num_dimension,
-                                   charge=charge)
-        self.objects.append(self.touch_planet)
+
+        if HAS_CHARGE:
+            charge = self.def_charge
+            '''
+            if 'button' in touch.profile:
+                if touch.button == 'right':
+                    charge = -1.
+            '''
+            # print(f'keyboard_modifiers {self._keyboard_modifiers}')
+            if 'ctrl' in self._keyboard_modifiers:
+                charge *= -1.
+                # print(f'charge {charge}')
+            self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)),
+                                       mass=1, 
+                                       num_dimension=self.num_dimension,
+                                       charge=charge)
+        else:
+            self.touch_planet = Planet(pos=list(self.to_num_dimension(touch.pos)),
+                                           mass=1, 
+                                           num_dimension=self.num_dimension)
+
+        self.append(self.touch_planet)
         
         return False
 

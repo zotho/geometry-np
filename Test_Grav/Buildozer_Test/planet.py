@@ -4,7 +4,10 @@ import numpy as np
 
 from collections import deque
 
-from custom_update import *
+import config
+CUSTOM_ACC = config.CUSTOM_ACC
+HAS_CHARGE = config.CHARGE
+ROUND_SPACE = config.ROUND_SPACE
 
 
 class Planet():
@@ -22,6 +25,7 @@ class Planet():
         self.mass = np.array(mass)
         self.collided = False
 
+        # Dict for other data about planet
         self.data = kwargs
         
         # Tail
@@ -50,7 +54,7 @@ class Planet():
         # End function
         '''
         # See custom functions in file custom_update.py
-        custom_acc3_1(self, space=s)
+        CUSTOM_ACC(self, space=s, dt=dt)
 
     def update_vel(self, dt):
         self.vel += self.acc * dt
@@ -106,11 +110,11 @@ class Planet():
 
     def translate(self, matrix):
         num = self.num_dimension
-        pos = self.pos.copy()
-
-        pos.resize(num + 1)
+        
+        pos = np.zeros(num + 1)
+        pos[:num] = self.pos
         pos[-1] = 1.
-        self.pos = np.resize(np.dot(matrix, pos), num)
+        self.pos = np.dot(matrix, pos)[:num]
 
         new_tail = deque(maxlen=self.tail_len)
         new_tail_coords = deque(maxlen=self.tail_len*2)
