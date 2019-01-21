@@ -89,22 +89,29 @@ def custom_acc3_2(obj, space=None, **kwargs):
     '''Round collide space
     '''
     num = obj.num_dimension
-    x, y = space.center_x, space.center_y
+    center = np.array((space.center_x, space.center_y))
     w, h = space.width, space.height
 
     r = min(w, h) / 2 - 10
 
-    ox, oy, *_ = obj.pos
+    # ox, oy, *_ = obj.pos
 
-    rp = np.linalg.norm(obj.pos - space.to_num_dimension((x, y,))) + obj.round_size()
+    pos = obj.pos[:2]
+
+    rp = np.linalg.norm(pos - center) + obj.round_size()
 
     if rp > r:
         # rp += kwargs.get('dt', 0.) * np.linalg.norm(obj.vel)
+        
+        pos_to = r / rp * (pos - center) + center
+        dpos = pos_to - pos
+
+
+        '''
         ox2 = (ox - x) / rp * r + x
         oy2 = (oy - y) / rp * r + y 
         dx, dy = ox2-ox, oy2-oy
 
-        '''
         from math import sin, cos, pi, atan2
         a = atan2(oy2/rp, ox2/rp) + pi/2.
         if ox2 < 0.:
@@ -112,21 +119,34 @@ def custom_acc3_2(obj, space=None, **kwargs):
         c = cos(a)
         s = sin(a)
         '''
-        c = (ox2-x)/rp
-        s = (oy2-y)/rp
+        norm_pos_center = (pos_to - center) / r # why /rp?
+
+        c = norm_pos_center[0]
+        s = norm_pos_center[1]
         # print(f'a={a} c={c} s={s}')
         # Reflect in round
-        rot = np.array([[c**2-s**2, 2*c*s],   
-                        [2*c*s,     s**2-c**2]])
-        rot_matrix = np.zeros((obj.num_dimension, obj.num_dimension))
-        rot_matrix[:2, :2] = rot
-
-        matrix_translate = np.eye(num+1)
-        matrix_translate[0:2, num:num+1] = ((dx,), (dy,),)
-        obj.translate(matrix_translate)
+        rot_matrix = np.array( ((c**2-s**2, 2*c*s),   
+                                (2*c*s,     s**2-c**2)) )
+        vel = obj.vel[:2]
         # Energy of collide
-        obj.vel *= -0.9
-        obj.vel = np.dot(rot_matrix, obj.vel)
+        vel *= -0.9
+        obj.vel[:2] = np.dot(rot_matrix, vel)
+
+        matrix_translate = np.eye(num + 1)
+        matrix_translate[0:2, num:num + 1] = np.reshape(dpos, (2, 1))
+        obj.translate(matrix_translate)
+
+        dt = kwargs.get('dt', 0.)
+        acc = obj.acc[:2]
+
+        next_dpos = (vel + acc * dt) * dt
+
+        if r + np.dot(next_dpos, norm_pos_center) > r:
+            obj.acc[:2] = acc - (np.dot(acc, norm_pos_center) / r**2 * norm_pos_center)
+            obj.vel[:2] = vel - (np.dot(vel, norm_pos_center) / r**2 * norm_pos_center)
+
+
+        
         '''
         if dx != 0.:
             obj.vel[0] = -obj.vel[0] # / 2.
@@ -155,7 +175,6 @@ def custom_acc4(obj, space=None, **kwargs):
 def custom_acc5(obj, space=None, **kwargs):
     '''Charged particles in round collide space
     '''
-    custom_acc3_2(obj, space=space, **kwargs)
 
     for other in space.objects:
         if obj is not other:
@@ -166,10 +185,12 @@ def custom_acc5(obj, space=None, **kwargs):
                 charge1 = obj.data.get('charge', None)
                 charge2 = other.data.get('charge', None)
                 charge = charge1 * charge2
-                obj.acc += (other.pos - obj.pos) * -charge * space.grav_const / dist**2
+                obj.acc += (other.pos - obj.pos) * -charge * space.grav_const / dist**2 / obj.mass
             else:
                 obj.collided = other
                 break
+
+    custom_acc3_2(obj, space=space, **kwargs)
 
 def custom_acc6(obj, space=None, **kwargs):
     for other in space.objects:

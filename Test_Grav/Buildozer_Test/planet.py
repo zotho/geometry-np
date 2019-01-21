@@ -8,6 +8,7 @@ import config
 CUSTOM_ACC = config.CUSTOM_ACC
 HAS_CHARGE = config.CHARGE
 ROUND_SPACE = config.ROUND_SPACE
+ACC_MARKERS = config.ACC_MARKERS
 
 
 class Planet():
@@ -131,7 +132,7 @@ class Planet():
         self.tail = new_tail
         self.tail_coords = new_tail_coords
 
-    def round_size(self, m=3.):
+    def round_size(self, m=6.):
         return self.mass**(1./self.num_dimension) * m
 
     def collide_check(self, obj):

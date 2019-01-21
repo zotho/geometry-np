@@ -9,9 +9,9 @@ from kivy.graphics.context_instructions import Color
 import numpy as np
 from mgen import rotation_from_angle_and_plane
 
-# from math import log
+from math import log
 
-from planet import Planet, HAS_CHARGE, ROUND_SPACE
+from planet import Planet, HAS_CHARGE, ROUND_SPACE, ACC_MARKERS
 
 
 class Space(Widget):
@@ -32,6 +32,10 @@ class Space(Widget):
         self._keyboard_modifiers = []
         if HAS_CHARGE:
             self.def_charge = 1.
+        if ACC_MARKERS:
+            self.show_markers = False
+            self.markers = []
+            
 
         self.num_dimension = 3
         self.objects = []
@@ -67,16 +71,12 @@ class Space(Widget):
                else arr
         '''
 
-    """
     def sign_log(self, x, m = 10.):
         '''Normalise vector(np array) by log of it length
 
         '''
         norm = np.linalg.norm(x)
-        if norm < 1.:
-            norm = 1.
-        return m * log(norm) / norm * x
-    """
+        return m * log(norm + 1) / (norm + 1) * x
 
     '''
     def rect_size(self, mass, m=10.):
@@ -112,12 +112,39 @@ class Space(Widget):
         self.canvas.clear()
         with self.canvas:
             # Background
+            cx, cy = self.center_x, self.center_y
+            w, h = self.width, self.height
             if ROUND_SPACE:
-                x, y = self.center_x, self.center_y
-                w, h = self.width, self.height
                 r = min(w, h) / 2 - 10
                 Color(1, 1, 1, 1)
-                Line(circle=(x, y, r))
+                Line(circle=(cx, cy, r))
+
+            if ACC_MARKERS and self.show_markers:
+                step = 80
+                for x in range(round(cx - step*(cx//step)), w+1, step):
+                    for y in range(round(cy - step*(cy//step)), h+1, step):
+                        if (x-cx)**2 + (y-cy)**2 > r**2:
+                            continue
+                        point = Planet(pos=list(self.to_num_dimension((x, y))),
+                                       mass=1, 
+                                       num_dimension=self.num_dimension,
+                                       charge=1.)
+                        point.update_acc(1., self)
+                        pos = point.pos
+                        acc = self.sign_log(point.acc, m = 5.)
+
+                        if HAS_CHARGE:
+                            Color(1, 0, 0, 1)
+                            Line(points=(pos[0],             pos[1],
+                                         pos[0] + acc[0]/2., pos[1] + acc[1]/2.))
+                            Color(0, 0, 1, 1)
+                            Line(points=(pos[0] + acc[0]/2., pos[1] + acc[1]/2.,
+                                         pos[0] + acc[0],    pos[1] + acc[1]))
+                        else:
+                            Color(0, 0, 1, 1)
+                            Line(points=(pos[0],          pos[1],
+                                         pos[0] + acc[0], pos[1] + acc[1]))
+
 
             # Touch white line
             if self.touch_planet:
@@ -465,8 +492,11 @@ class Space(Widget):
         # print(f'keydown {self._keyboard_modifiers}')
 
         # In case custom_acc5 use
-        if 'a' == keycode[1]: #or 274 == keycode[0]:
-            self.def_charge *= -1.
+        if HAS_CHARGE:
+            if 'a' == keycode[1]: #or 274 == keycode[0]:
+                self.def_charge *= -1.
+        if 'f' == keycode[1]:
+            self.show_markers = not self.show_markers
         return True
 
     def _on_keyboard_up(self, keyboard, keycode):

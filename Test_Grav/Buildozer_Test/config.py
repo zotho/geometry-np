@@ -3,11 +3,12 @@
 import custom_update as upd
 
 # Settings
-CUSTOM_ACC = upd.custom_acc6
+CUSTOM_ACC = upd.custom_acc5
 
 # Graphics
 ROUND_SPACE = CUSTOM_ACC in (upd.custom_acc5, 
                              upd.custom_acc3_2,)
+ACC_MARKERS = True
 
 # Charge
 REQIRE_CHARGE = (upd.custom_acc5,)
