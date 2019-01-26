@@ -40,7 +40,7 @@ For load custom state
 $ python3 main.py state01.py
 ```
 
-For Android you can [Download APK](https://github.com/zotho/geometry-np/blob/master/Test_Grav/Buildozer_Test/APK/GravApp-1.0.apk) | [Check Virustotal](https://www.virustotal.com/#/file/41301ab4ee37b7bf6c27ad900213702bff3455d2fb91e2cdadfe66fe08417850/detection)
+For Android you can [Download APK](https://github.com/zotho/geometry-np/tree/master/Test_Grav/Buildozer_Test/APK) | [Check Virustotal](https://www.virustotal.com/#/file/41301ab4ee37b7bf6c27ad900213702bff3455d2fb91e2cdadfe66fe08417850/detection)
 
 [![Android Demonstration](https://raw.githubusercontent.com/zotho/geometry-np/master/4_Android_Demo.png)](https://github.com/zotho/geometry-np/tree/master/Test_Grav/Buildozer_Test/APK)
 
