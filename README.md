@@ -1,7 +1,5 @@
 # GravApp
 
-[![N|Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)
-
 [![3D Demonstration](https://raw.githubusercontent.com/zotho/geometry-np/master/1_3D_Demo.png)](https://youtu.be/_jQh-shTCy8)
 [See Demo](https://youtu.be/_jQh-shTCy8)
 
