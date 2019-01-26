@@ -1,6 +1,7 @@
 # GravApp
 
 [![3D Demonstration](https://raw.githubusercontent.com/zotho/geometry-np/master/1_3D_Demo.png)](https://youtu.be/_jQh-shTCy8)
+
 [See Demo](https://youtu.be/_jQh-shTCy8)
 
 [![3D Demonstration](https://raw.githubusercontent.com/zotho/geometry-np/master/2_3D_Demo.png)](https://youtu.be/_jQh-shTCy8)
@@ -14,6 +15,7 @@ You can write custom update function.
 E.g. magnetic field:
 
 [![Charge Demonstration](https://raw.githubusercontent.com/zotho/geometry-np/master/3_Charge_Demo.png)](https://youtu.be/tkRY8Td1pC8)
+
 [See Demo](https://youtu.be/tkRY8Td1pC8)
 
 ### Dependencies
