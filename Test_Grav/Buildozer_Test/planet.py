@@ -20,9 +20,22 @@ class Planet():
                  **kwargs):
         self.num_dimension = num_dimension
 
+        self.pos = np.array([0.]*self.num_dimension)
+        self.vel = self.pos.copy()
+        self.acc = self.pos.copy()
+
+        if pos:
+            self.pos[:len(pos)] = pos[:num_dimension]
+        if vel:
+            self.vel[:len(vel)] = vel[:num_dimension]
+        if acc:
+            self.acc[:len(acc)] = acc[:num_dimension]        
+
+        '''
         self.pos = np.array(pos) if pos else np.array([0.]*self.num_dimension)
         self.vel = np.array(vel) if vel else np.array([0.]*self.num_dimension)
         self.acc = np.array(acc) if acc else np.array([0.]*self.num_dimension)
+        '''
         self.mass = np.array(mass)
         self.collided = False
 

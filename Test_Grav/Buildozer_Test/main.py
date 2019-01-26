@@ -11,6 +11,7 @@ from kivy.graphics.context_instructions import Color
 from numpy import array2string, pi
 
 from functools import partial
+from importlib import import_module
 
 __author__ = "Sviatoslav Alexeev"
 __email__ = "svjatoslavalekseef2@gmail.com"
@@ -34,7 +35,8 @@ Window.borderless = True
 Window.hide()
 
 class GravApp(App):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, filename=None, **kwargs):
+        self.filename = filename
         super(GravApp, self).__init__(*args, **kwargs)
 
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
@@ -114,6 +116,9 @@ class GravApp(App):
         self.root.bind(on_touch_down=self.on_touch_down,
                        on_touch_move=self.on_touch_move,
                        on_touch_up=self.on_touch_up)
+        
+        if self.filename:
+            Clock.schedule_once(partial(import_module(self.filename).set_state, self.root, self), 1)
         
         return self.root
 
@@ -335,4 +340,9 @@ class GravApp(App):
         return self.root._on_keyboard_down(keyboard, keycode, text, modifiers)
 
 if __name__ == "__main__":
-    GravApp().run()
+    import sys
+
+    if len(sys.argv) >= 2:
+        GravApp(filename=sys.argv[1]).run()
+    else:
+        GravApp().run()

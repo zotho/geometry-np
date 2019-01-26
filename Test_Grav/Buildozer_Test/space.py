@@ -37,7 +37,7 @@ class Space(Widget):
             self.markers = []
             
 
-        self.num_dimension = 3
+        self.num_dimension = 2
         self.objects = []
         self.objects_to_append = []
 
@@ -52,6 +52,11 @@ class Space(Widget):
 
         self.grav_const = 1000.
         # self.inform_speed = 100. # not used
+
+        self.marker_point = Planet(pos=list(self.to_num_dimension((0., 0.))),
+                                   mass=1, 
+                                   num_dimension=self.num_dimension,
+                                   charge=1.)
 
 
     def to_num_dimension(self, arr, up=0):
@@ -119,31 +124,30 @@ class Space(Widget):
                 Color(1, 1, 1, 1)
                 Line(circle=(cx, cy, r))
 
+            
             if ACC_MARKERS and self.show_markers:
                 step = 80
+                point = self.marker_point
                 for x in range(round(cx - step*(cx//step)), w+1, step):
                     for y in range(round(cy - step*(cy//step)), h+1, step):
                         if (x-cx)**2 + (y-cy)**2 > r**2:
                             continue
-                        point = Planet(pos=list(self.to_num_dimension((x, y))),
-                                       mass=1, 
-                                       num_dimension=self.num_dimension,
-                                       charge=1.)
+                        point.pos[:2] = x, y
                         point.update_acc(1., self)
-                        pos = point.pos
+                        pos = x, y
                         acc = self.sign_log(point.acc, m = 5.)
+
+                        px, py = pos[:2]
+                        dx, dy = acc[:2]
 
                         if HAS_CHARGE:
                             Color(1, 0, 0, 1)
-                            Line(points=(pos[0],             pos[1],
-                                         pos[0] + acc[0]/2., pos[1] + acc[1]/2.))
+                            Line(points=(px, py, px-dx/2., py-dy/2.))
                             Color(0, 0, 1, 1)
-                            Line(points=(pos[0] + acc[0]/2., pos[1] + acc[1]/2.,
-                                         pos[0] + acc[0],    pos[1] + acc[1]))
+                            Line(points=(px, py, px+dx/2., py+dy/2.))
                         else:
                             Color(0, 0, 1, 1)
-                            Line(points=(pos[0],          pos[1],
-                                         pos[0] + acc[0], pos[1] + acc[1]))
+                            Line(points=(px, py, px+dx, py+dy))
 
 
             # Touch white line
